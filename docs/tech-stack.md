@@ -17,13 +17,13 @@ This document captures the technology decisions for Hangar Ledger, a private web
 
 | Layer | Technology |
 |-------|------------|
-| **Framework** | Next.js 15 (App Router) |
+| **Framework** | Next.js (App Router) |
 | **Backend** | Supabase (Postgres + Auth + Storage) |
 | **Database** | Supabase Postgres |
 | **Auth** | Supabase Auth |
 | **File Storage** | Supabase Storage |
 | **UI** | Tailwind CSS + shadcn/ui |
-| **Hosting** | Cloudflare Pages |
+| **Hosting** | Vercel |
 
 ---
 
@@ -32,8 +32,8 @@ This document captures the technology decisions for Hangar Ledger, a private web
 | Technology | Rationale |
 |------------|-----------|
 | **Supabase** | All-in-one backend (database, auth, storage) with generous free tier. Already familiar with it. |
-| **Next.js 15** | Full-stack TypeScript, App Router, excellent developer experience. |
-| **Cloudflare Pages** | Already in use for other projects, generous free tier, fast edge deployment. |
+| **Next.js** | Full-stack TypeScript, App Router, excellent developer experience. |
+| **Vercel** | Zero-config Next.js deployment. They maintain the framework. |
 | **shadcn/ui** | Pre-built accessible components, matches "clean, low-friction UI" goal. |
 | **Tailwind CSS** | Rapid UI development, consistent styling. |
 
@@ -52,13 +52,13 @@ This document captures the technology decisions for Hangar Ledger, a private web
 
 Upgrade path: Pro plan ($25/mo) for 100GB storage if needed.
 
-### Cloudflare Pages
+### Vercel
 
 | Resource | Limit |
 |----------|-------|
-| Builds | 500/month |
-| Bandwidth | Unlimited |
-| Sites | Unlimited |
+| Bandwidth | 100GB/month |
+| Builds | 100/day |
+| Serverless Functions | 100GB-hours/month |
 
 ---
 
@@ -99,27 +99,25 @@ Implementation: Store role in user metadata, enforce via Next.js middleware and 
 
 ```
 hangar-ledger/
-├── app/                    # Next.js App Router
-│   ├── (auth)/            # Auth pages (login, etc.)
-│   ├── (dashboard)/       # Protected app pages
-│   │   ├── trips/
-│   │   ├── expenses/
-│   │   ├── fuel/
-│   │   └── reports/
-│   ├── api/               # API routes if needed
-│   └── layout.tsx
-├── components/            # React components
-│   ├── ui/               # shadcn/ui components
-│   └── ...
-├── lib/
-│   ├── supabase/         # Supabase client setup
-│   └── utils.ts
-├── types/                 # TypeScript types
-├── docs/                  # Documentation
-│   └── tech-stack.md     # This file
+├── src/
+│   ├── app/                # Next.js App Router
+│   │   ├── (auth)/         # Auth pages (login, etc.)
+│   │   ├── (dashboard)/    # Protected app pages
+│   │   │   ├── trips/
+│   │   │   ├── expenses/
+│   │   │   ├── fuel/
+│   │   │   └── reports/
+│   │   └── layout.tsx
+│   ├── components/         # React components
+│   │   └── ui/            # shadcn/ui components
+│   ├── lib/
+│   │   ├── supabase/      # Supabase client setup
+│   │   └── utils.ts
+│   └── types/             # TypeScript types
+├── docs/                   # Documentation
 └── supabase/
-    ├── migrations/       # Database migrations
-    └── seed.sql          # Optional seed data
+    ├── migrations/        # Database migrations
+    └── seed.sql           # Optional seed data
 ```
 
 ---
@@ -179,26 +177,21 @@ hangar-ledger/
 
 1. **Local development**: `npx supabase start` + `npm run dev`
 2. **Database changes**: Supabase CLI migrations
-3. **Deployment**: Push to main → Cloudflare Pages auto-deploys
-4. **Environment variables**: Supabase keys in Cloudflare Pages settings
-
-### Cloudflare Pages Setup
-- Use `@cloudflare/next-on-pages` adapter
-- Build command: `npx @cloudflare/next-on-pages`
-- Output directory: `.vercel/output/static`
+3. **Deployment**: Push to main → Vercel auto-deploys
+4. **Environment variables**: Set in Vercel dashboard
 
 ---
 
 ## Implementation Phases
 
-1. Initialize Next.js project with TypeScript + Tailwind
+1. ~~Initialize Next.js project with TypeScript + Tailwind~~
 2. Set up Supabase project and link locally
 3. Create database schema with migrations
 4. Configure Supabase Auth
 5. Build core CRUD for trips and expenses
 6. Add file upload for receipts
 7. Implement basic reports
-8. Deploy to Cloudflare Pages
+8. Deploy to Vercel
 
 ---
 
