@@ -7,6 +7,7 @@ import type { Expense } from "@/types/database";
 
 export type ExpenseFormData = {
   trip_id?: string;
+  vendor_id?: string;
   date: string;
   vendor: string;
   amount: number;
@@ -19,11 +20,16 @@ export type ExpenseWithTrip = Expense & {
   trips: { name: string } | null;
 };
 
-export async function getExpenses(): Promise<ExpenseWithTrip[]> {
+export type ExpenseWithRelations = Expense & {
+  trips: { name: string } | null;
+  vendors: { deleted_at: string | null } | null;
+};
+
+export async function getExpenses(): Promise<ExpenseWithRelations[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name)")
+    .select("*, trips(name), vendors(deleted_at)")
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
@@ -31,11 +37,15 @@ export async function getExpenses(): Promise<ExpenseWithTrip[]> {
   return data ?? [];
 }
 
-export async function getExpensesByTrip(tripId: string): Promise<Expense[]> {
+export type ExpenseWithVendor = Expense & {
+  vendors: { deleted_at: string | null } | null;
+};
+
+export async function getExpensesByTrip(tripId: string): Promise<ExpenseWithVendor[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*")
+    .select("*, vendors(deleted_at)")
     .eq("trip_id", tripId)
     .is("deleted_at", null)
     .order("date", { ascending: false });
@@ -64,6 +74,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   const supabase = await createClient();
   const { error } = await supabase.from("expenses").insert({
     trip_id: formData.trip_id || null,
+    vendor_id: formData.vendor_id || null,
     date: formData.date,
     vendor: formData.vendor,
     amount: formData.amount,
@@ -89,6 +100,7 @@ export async function updateExpense(
     .from("expenses")
     .update({
       trip_id: formData.trip_id || null,
+      vendor_id: formData.vendor_id || null,
       date: formData.date,
       vendor: formData.vendor,
       amount: formData.amount,

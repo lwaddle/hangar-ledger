@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTrip } from "@/lib/actions/trips";
-import { getExpensesByTrip } from "@/lib/actions/expenses";
+import { getVendor, getExpensesByVendor, getVendors } from "@/lib/actions/vendors";
 import { Button } from "@/components/ui/button";
-import { DeleteTripButton } from "@/components/delete-trip-button";
+import { DeleteVendorButton } from "@/components/delete-vendor-button";
 import {
   Table,
   TableBody,
@@ -24,14 +23,15 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default async function TripDetailPage({ params }: Props) {
+export default async function VendorDetailPage({ params }: Props) {
   const { id } = await params;
-  const [trip, expenses] = await Promise.all([
-    getTrip(id),
-    getExpensesByTrip(id),
+  const [vendor, expenses, allVendors] = await Promise.all([
+    getVendor(id),
+    getExpensesByVendor(id),
+    getVendors(),
   ]);
 
-  if (!trip) {
+  if (!vendor) {
     notFound();
   }
 
@@ -41,25 +41,28 @@ export default async function TripDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{trip.name}</h1>
+          <h1 className="text-2xl font-bold">{vendor.name}</h1>
           <p className="text-gray-500 mt-1">
-            {new Date(trip.start_date).toLocaleDateString()}
-            {trip.end_date &&
-              ` - ${new Date(trip.end_date).toLocaleDateString()}`}
+            {expenses.length} expense{expenses.length !== 1 && "s"}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link href={`/trips/${trip.id}/edit`}>Edit</Link>
+            <Link href={`/vendors/${vendor.id}/edit`}>Edit</Link>
           </Button>
-          <DeleteTripButton tripId={trip.id} tripName={trip.name} />
+          <DeleteVendorButton
+            vendorId={vendor.id}
+            vendorName={vendor.name}
+            expenseCount={expenses.length}
+            vendors={allVendors}
+          />
         </div>
       </div>
 
-      {trip.notes && (
+      {vendor.notes && (
         <div className="bg-white rounded-lg border p-4 mb-6">
           <h2 className="font-medium mb-2">Notes</h2>
-          <p className="text-gray-600 whitespace-pre-wrap">{trip.notes}</p>
+          <p className="text-gray-600 whitespace-pre-wrap">{vendor.notes}</p>
         </div>
       )}
 
@@ -73,21 +76,17 @@ export default async function TripDetailPage({ params }: Props) {
               </p>
             )}
           </div>
-          <Button size="sm" asChild>
-            <Link href={`/expenses/new?trip_id=${trip.id}`}>Add Expense</Link>
-          </Button>
         </div>
 
         {expenses.length === 0 ? (
           <p className="text-gray-500 text-sm">
-            No expenses recorded for this trip yet.
+            No expenses recorded for this vendor yet.
           </p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
@@ -96,18 +95,12 @@ export default async function TripDetailPage({ params }: Props) {
               {expenses.map((expense) => (
                 <TableRow key={expense.id}>
                   <TableCell>
-                    {new Date(expense.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
                     <Link
                       href={`/expenses/${expense.id}`}
                       className="text-blue-600 hover:underline"
                     >
-                      {expense.vendor}
+                      {new Date(expense.date).toLocaleDateString()}
                     </Link>
-                    {expense.vendors?.deleted_at && (
-                      <span className="text-gray-400 text-sm ml-1">(deleted)</span>
-                    )}
                   </TableCell>
                   <TableCell>{expense.category}</TableCell>
                   <TableCell className="text-right font-mono">

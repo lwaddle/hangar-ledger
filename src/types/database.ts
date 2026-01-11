@@ -12,9 +12,19 @@ export type Trip = {
   deleted_at: string | null;
 };
 
+export type Vendor = {
+  id: string;
+  name: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 export type Expense = {
   id: string;
   trip_id: string | null;
+  vendor_id: string | null;
   date: string;
   vendor: string;
   amount: number;

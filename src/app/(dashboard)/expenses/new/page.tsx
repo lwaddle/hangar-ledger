@@ -1,4 +1,5 @@
 import { getTrips } from "@/lib/actions/trips";
+import { getVendors } from "@/lib/actions/vendors";
 import { ExpenseForm } from "@/components/expense-form";
 
 type Props = {
@@ -7,12 +8,12 @@ type Props = {
 
 export default async function NewExpensePage({ searchParams }: Props) {
   const { trip_id } = await searchParams;
-  const trips = await getTrips();
+  const [trips, vendors] = await Promise.all([getTrips(), getVendors()]);
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">New Expense</h1>
-      <ExpenseForm trips={trips} defaultTripId={trip_id} />
+      <ExpenseForm trips={trips} vendors={vendors} defaultTripId={trip_id} />
     </div>
   );
 }
