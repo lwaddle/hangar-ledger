@@ -40,6 +40,34 @@ export async function getVendor(id: string): Promise<Vendor | null> {
 
 export async function createVendor(formData: VendorFormData): Promise<Vendor> {
   const supabase = await createClient();
+
+  // Check if a soft-deleted vendor with the same name exists
+  const { data: deletedVendor } = await supabase
+    .from("vendors")
+    .select("*")
+    .eq("name", formData.name)
+    .not("deleted_at", "is", null)
+    .single();
+
+  // If found, restore it instead of creating a new one
+  if (deletedVendor) {
+    const { data, error } = await supabase
+      .from("vendors")
+      .update({
+        deleted_at: null,
+        notes: formData.notes || deletedVendor.notes,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", deletedVendor.id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    revalidatePath("/vendors");
+    return data;
+  }
+
+  // Otherwise, create a new vendor
   const { data, error } = await supabase
     .from("vendors")
     .insert({
