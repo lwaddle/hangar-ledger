@@ -105,6 +105,9 @@ export default async function TripDetailPage({ params }: Props) {
                     >
                       {expense.vendor}
                     </Link>
+                    {expense.vendors?.deleted_at && (
+                      <span className="text-gray-400 text-sm ml-1">(deleted)</span>
+                    )}
                   </TableCell>
                   <TableCell>{expense.category}</TableCell>
                   <TableCell className="text-right font-mono">

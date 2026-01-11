@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getVendor, getExpensesByVendor } from "@/lib/actions/vendors";
+import { getVendor, getExpensesByVendor, getVendors } from "@/lib/actions/vendors";
 import { Button } from "@/components/ui/button";
 import { DeleteVendorButton } from "@/components/delete-vendor-button";
 import {
@@ -25,9 +25,10 @@ type Props = {
 
 export default async function VendorDetailPage({ params }: Props) {
   const { id } = await params;
-  const [vendor, expenses] = await Promise.all([
+  const [vendor, expenses, allVendors] = await Promise.all([
     getVendor(id),
     getExpensesByVendor(id),
+    getVendors(),
   ]);
 
   if (!vendor) {
@@ -49,7 +50,12 @@ export default async function VendorDetailPage({ params }: Props) {
           <Button variant="outline" asChild>
             <Link href={`/vendors/${vendor.id}/edit`}>Edit</Link>
           </Button>
-          <DeleteVendorButton vendorId={vendor.id} vendorName={vendor.name} />
+          <DeleteVendorButton
+            vendorId={vendor.id}
+            vendorName={vendor.name}
+            expenseCount={expenses.length}
+            vendors={allVendors}
+          />
         </div>
       </div>
 

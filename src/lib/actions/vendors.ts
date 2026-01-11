@@ -104,3 +104,56 @@ export async function getExpensesByVendor(vendorId: string) {
   if (error) throw error;
   return data ?? [];
 }
+
+export async function getExpenseCountByVendor(vendorId: string): Promise<number> {
+  const supabase = await createClient();
+  const { count, error } = await supabase
+    .from("expenses")
+    .select("*", { count: "exact", head: true })
+    .eq("vendor_id", vendorId)
+    .is("deleted_at", null);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function reassignExpensesAndDeleteVendor(
+  sourceVendorId: string,
+  targetVendorId: string
+): Promise<void> {
+  const supabase = await createClient();
+
+  // Get target vendor name
+  const { data: targetVendor, error: vendorError } = await supabase
+    .from("vendors")
+    .select("name")
+    .eq("id", targetVendorId)
+    .single();
+
+  if (vendorError) throw vendorError;
+
+  // Update all expenses from source vendor to target vendor
+  const { error: updateError } = await supabase
+    .from("expenses")
+    .update({
+      vendor_id: targetVendorId,
+      vendor: targetVendor.name,
+    })
+    .eq("vendor_id", sourceVendorId)
+    .is("deleted_at", null);
+
+  if (updateError) throw updateError;
+
+  // Soft-delete the source vendor
+  const { error: deleteError } = await supabase
+    .from("vendors")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", sourceVendorId);
+
+  if (deleteError) throw deleteError;
+
+  revalidatePath("/vendors");
+  revalidatePath("/expenses");
+  revalidatePath(`/vendors/${targetVendorId}`);
+  redirect("/vendors");
+}

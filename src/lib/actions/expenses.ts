@@ -20,11 +20,16 @@ export type ExpenseWithTrip = Expense & {
   trips: { name: string } | null;
 };
 
-export async function getExpenses(): Promise<ExpenseWithTrip[]> {
+export type ExpenseWithRelations = Expense & {
+  trips: { name: string } | null;
+  vendors: { deleted_at: string | null } | null;
+};
+
+export async function getExpenses(): Promise<ExpenseWithRelations[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name)")
+    .select("*, trips(name), vendors(deleted_at)")
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
@@ -32,11 +37,15 @@ export async function getExpenses(): Promise<ExpenseWithTrip[]> {
   return data ?? [];
 }
 
-export async function getExpensesByTrip(tripId: string): Promise<Expense[]> {
+export type ExpenseWithVendor = Expense & {
+  vendors: { deleted_at: string | null } | null;
+};
+
+export async function getExpensesByTrip(tripId: string): Promise<ExpenseWithVendor[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*")
+    .select("*, vendors(deleted_at)")
     .eq("trip_id", tripId)
     .is("deleted_at", null)
     .order("date", { ascending: false });

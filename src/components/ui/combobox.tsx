@@ -115,11 +115,10 @@ export function Combobox({
                 </Command.Empty>
               )}
               {filteredOptions.map((option) => (
-                <Command.Item
+                <div
                   key={option.value}
-                  value={option.value}
-                  onSelect={() => handleSelect(option.value)}
-                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => handleSelect(option.value)}
+                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-accent hover:text-accent-foreground"
                 >
                   <span className="truncate">{option.label}</span>
                   {option.value === value && (
@@ -127,19 +126,18 @@ export function Combobox({
                       <CheckIcon className="size-4" />
                     </span>
                   )}
-                </Command.Item>
+                </div>
               ))}
               {showCreateNew && (
-                <Command.Item
-                  value={`create-${inputValue}`}
-                  onSelect={handleCreateNew}
-                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground border-t mt-1 pt-2"
+                <div
+                  onClick={handleCreateNew}
+                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-2 pl-2 text-sm outline-hidden select-none hover:bg-accent hover:text-accent-foreground border-t mt-1 pt-2"
                 >
                   <PlusIcon className="size-4" />
                   <span>
                     {createNewLabel} &quot;{inputValue.trim()}&quot;
                   </span>
-                </Command.Item>
+                </div>
               )}
             </Command.List>
           </Command>
