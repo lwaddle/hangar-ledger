@@ -79,4 +79,4 @@ Set these in Vercel dashboard:
 
 ## License
 
-Private - All rights reserved.
+MIT - See [LICENSE](./LICENSE) for details.

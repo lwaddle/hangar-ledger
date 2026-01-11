@@ -30,7 +30,25 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Refresh session if expired
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+
+  // Redirect unauthenticated users to login (except for auth pages)
+  if (!user && !pathname.startsWith("/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated users away from login page
+  if (user && pathname.startsWith("/login")) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/trips";
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }
