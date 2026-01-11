@@ -4,6 +4,16 @@ import { useState } from "react";
 import { deleteVendor, reassignExpensesAndDeleteVendor } from "@/lib/actions/vendors";
 import { Button } from "@/components/ui/button";
 import { VendorCombobox } from "@/components/vendor-combobox";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 import type { Vendor } from "@/types/database";
 
 type Props = {
@@ -14,7 +24,7 @@ type Props = {
 };
 
 export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors }: Props) {
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
   const [showReassign, setShowReassign] = useState(false);
   const [loading, setLoading] = useState(false);
   const [targetVendorId, setTargetVendorId] = useState("");
@@ -27,9 +37,9 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
     setLoading(true);
     try {
       await deleteVendor(vendorId);
+      setOpen(false);
     } catch (err) {
       setLoading(false);
-      setConfirming(false);
     }
   }
 
@@ -38,120 +48,111 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
     setLoading(true);
     try {
       await reassignExpensesAndDeleteVendor(vendorId, targetVendorId);
+      setOpen(false);
     } catch (err) {
       setLoading(false);
-      setShowReassign(false);
     }
   }
 
-  function handleCancel() {
-    setConfirming(false);
-    setShowReassign(false);
-    setTargetVendorId("");
-    setTargetVendorName("");
-  }
-
-  // Show reassign UI
-  if (showReassign) {
-    return (
-      <div className="space-y-3 p-4 bg-gray-50 rounded-lg border">
-        <p className="text-sm font-medium">Reassign expenses to:</p>
-        <VendorCombobox
-          vendors={availableVendors}
-          value={targetVendorId}
-          vendorName={targetVendorName}
-          onValueChange={(id, name) => {
-            setTargetVendorId(id);
-            setTargetVendorName(name);
-          }}
-          disabled={loading}
-        />
-        <div className="flex gap-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleReassignAndDelete}
-            disabled={loading || !targetVendorId}
-          >
-            {loading ? "Reassigning..." : "Reassign & Delete"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCancel}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Show confirmation UI with options when there are linked expenses
-  if (confirming && expenseCount > 0) {
-    return (
-      <div className="space-y-3 p-4 bg-amber-50 rounded-lg border border-amber-200">
-        <p className="text-sm text-amber-800">
-          <strong>Warning:</strong> {expenseCount} expense{expenseCount !== 1 && "s"} linked to this vendor.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={loading}
-          >
-            {loading ? "Deleting..." : "Delete Anyway"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowReassign(true)}
-            disabled={loading}
-          >
-            Reassign Expenses
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleCancel}
-            disabled={loading}
-          >
-            Cancel
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Simple confirmation for vendors with no expenses
-  if (confirming) {
-    return (
-      <div className="flex gap-2">
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={loading}
-        >
-          {loading ? "Deleting..." : "Confirm"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCancel}
-          disabled={loading}
-        >
-          Cancel
-        </Button>
-      </div>
-    );
+  function handleOpenChange(isOpen: boolean) {
+    if (!loading) {
+      setOpen(isOpen);
+      if (!isOpen) {
+        // Reset state when closing
+        setShowReassign(false);
+        setTargetVendorId("");
+        setTargetVendorName("");
+      }
+    }
   }
 
   return (
-    <Button variant="destructive" onClick={() => setConfirming(true)}>
-      Delete
-    </Button>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete {vendorName}?</AlertDialogTitle>
+          <AlertDialogDescription>
+            {expenseCount > 0 ? (
+              <>
+                <span className="text-amber-600 font-medium">Warning:</span>{" "}
+                {expenseCount} expense{expenseCount !== 1 && "s"} linked to this vendor.
+                {!showReassign && " Choose how to proceed."}
+              </>
+            ) : (
+              "This action cannot be undone."
+            )}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        {showReassign && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium">Reassign expenses to:</p>
+            <VendorCombobox
+              vendors={availableVendors}
+              value={targetVendorId}
+              vendorName={targetVendorName}
+              onValueChange={(id, name) => {
+                setTargetVendorId(id);
+                setTargetVendorName(name);
+              }}
+              disabled={loading}
+            />
+          </div>
+        )}
+
+        <AlertDialogFooter>
+          {showReassign ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setShowReassign(false)}
+                disabled={loading}
+              >
+                Back
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleReassignAndDelete}
+                disabled={loading || !targetVendorId}
+              >
+                {loading ? "Reassigning..." : "Reassign & Delete"}
+              </Button>
+            </>
+          ) : expenseCount > 0 ? (
+            <>
+              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+              <Button
+                variant="outline"
+                onClick={() => setShowReassign(true)}
+                disabled={loading}
+              >
+                Reassign Expenses
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={loading}
+              >
+                {loading ? "Deleting..." : "Delete Anyway"}
+              </Button>
+            </>
+          ) : (
+            <>
+              <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={loading}
+              >
+                {loading ? "Deleting..." : "Delete"}
+              </Button>
+            </>
+          )}
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
