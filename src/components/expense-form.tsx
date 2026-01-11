@@ -19,15 +19,17 @@ import {
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
-import { EXPENSE_CATEGORIES, type Trip } from "@/types/database";
+import { EXPENSE_CATEGORIES, type Trip, type Vendor } from "@/types/database";
+import { VendorCombobox } from "@/components/vendor-combobox";
 
 type Props = {
   expense?: ExpenseWithTrip;
   trips: Trip[];
+  vendors: Vendor[];
   defaultTripId?: string;
 };
 
-export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
+export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,8 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
     expense?.trip_id ?? defaultTripId ?? "none"
   );
   const [category, setCategory] = useState<string>(expense?.category ?? "");
+  const [vendorId, setVendorId] = useState<string>(expense?.vendor_id ?? "");
+  const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -44,8 +48,9 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
     const formData = new FormData(e.currentTarget);
     const data: ExpenseFormData = {
       trip_id: tripId === "none" ? undefined : tripId,
+      vendor_id: vendorId || undefined,
       date: formData.get("date") as string,
-      vendor: formData.get("vendor") as string,
+      vendor: vendorName,
       amount: parseFloat(formData.get("amount") as string),
       category: category,
       payment_method: (formData.get("payment_method") as string) || undefined,
@@ -111,12 +116,15 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
 
       <div className="space-y-2">
         <Label htmlFor="vendor">Vendor *</Label>
-        <Input
-          id="vendor"
-          name="vendor"
-          defaultValue={expense?.vendor}
-          placeholder="e.g., Atlantic Aviation"
-          required
+        <VendorCombobox
+          vendors={vendors}
+          value={vendorId}
+          vendorName={vendorName}
+          onValueChange={(id, name) => {
+            setVendorId(id);
+            setVendorName(name);
+          }}
+          disabled={loading}
         />
       </div>
 
@@ -160,7 +168,7 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !category}>
+        <Button type="submit" disabled={loading || !category || !vendorName}>
           {loading ? "Saving..." : expense ? "Update Expense" : "Create Expense"}
         </Button>
         <Button
