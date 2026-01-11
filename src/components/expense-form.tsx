@@ -32,7 +32,7 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tripId, setTripId] = useState<string>(
-    expense?.trip_id ?? defaultTripId ?? ""
+    expense?.trip_id ?? defaultTripId ?? "none"
   );
   const [category, setCategory] = useState<string>(expense?.category ?? "");
 
@@ -43,7 +43,7 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
 
     const formData = new FormData(e.currentTarget);
     const data: ExpenseFormData = {
-      trip_id: tripId || undefined,
+      trip_id: tripId === "none" ? undefined : tripId,
       date: formData.get("date") as string,
       vendor: formData.get("vendor") as string,
       amount: parseFloat(formData.get("amount") as string),
@@ -73,7 +73,7 @@ export function ExpenseForm({ expense, trips, defaultTripId }: Props) {
             <SelectValue placeholder="Select a trip (optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No trip</SelectItem>
+            <SelectItem value="none">No trip</SelectItem>
             {trips.map((trip) => (
               <SelectItem key={trip.id} value={trip.id}>
                 {trip.name}
