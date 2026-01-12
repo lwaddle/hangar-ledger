@@ -40,6 +40,10 @@ export function PaymentMethodForm({ paymentMethod }: Props) {
         await createPaymentMethodAndRedirect(data);
       }
     } catch (err) {
+      // Rethrow redirect errors - they're not real errors
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+        throw err;
+      }
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
