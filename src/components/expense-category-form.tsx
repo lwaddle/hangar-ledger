@@ -23,10 +23,10 @@ export function ExpenseCategoryForm({ category }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFlightExpense, setIsFlightExpense] = useState(
-    category?.is_flight_expense ?? true
+    category?.is_flight_expense ?? false
   );
   const [isGeneralExpense, setIsGeneralExpense] = useState(
-    category?.is_general_expense ?? true
+    category?.is_general_expense ?? false
   );
 
   const atLeastOneSelected = isFlightExpense || isGeneralExpense;
@@ -110,11 +110,6 @@ export function ExpenseCategoryForm({ category }: Props) {
             </Label>
           </div>
         </div>
-        {!atLeastOneSelected && (
-          <p className="text-sm text-red-600">
-            At least one expense type must be selected
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
