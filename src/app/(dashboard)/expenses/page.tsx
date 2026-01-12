@@ -46,7 +46,6 @@ export default async function ExpensesPage() {
                 <TableHead>Category</TableHead>
                 <TableHead>Trip</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -81,11 +80,6 @@ export default async function ExpensesPage() {
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(expense.amount)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/expenses/${expense.id}/edit`}>Edit</Link>
-                    </Button>
                   </TableCell>
                 </TableRow>
               ))}
