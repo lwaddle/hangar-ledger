@@ -94,9 +94,7 @@ export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
           <TableRow key={item.id} className="bg-muted/30">
             <TableCell />
             <TableCell />
-            <TableCell className="pl-8 text-sm text-muted-foreground">
-              {item.description || "-"}
-            </TableCell>
+            <TableCell />
             <TableCell className="text-sm">{item.category}</TableCell>
             {showTrip && <TableCell />}
             <TableCell className="text-right font-mono text-sm text-muted-foreground">
