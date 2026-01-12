@@ -19,17 +19,19 @@ import {
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
-import { EXPENSE_CATEGORIES, type Trip, type Vendor } from "@/types/database";
+import { EXPENSE_CATEGORIES, type Trip, type Vendor, type PaymentMethod } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
+import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 
 type Props = {
   expense?: ExpenseWithTrip;
   trips: Trip[];
   vendors: Vendor[];
+  paymentMethods: PaymentMethod[];
   defaultTripId?: string;
 };
 
-export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
+export function ExpenseForm({ expense, trips, vendors, paymentMethods, defaultTripId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +41,8 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
   const [category, setCategory] = useState<string>(expense?.category ?? "");
   const [vendorId, setVendorId] = useState<string>(expense?.vendor_id ?? "");
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
+  const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
+  const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,11 +53,12 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
     const data: ExpenseFormData = {
       trip_id: tripId === "none" ? undefined : tripId,
       vendor_id: vendorId || undefined,
+      payment_method_id: paymentMethodId || undefined,
       date: formData.get("date") as string,
       vendor: vendorName,
       amount: parseFloat(formData.get("amount") as string),
       category: category,
-      payment_method: (formData.get("payment_method") as string) || undefined,
+      payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
     };
 
@@ -64,6 +69,10 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
         await createExpense(data);
       }
     } catch (err) {
+      // Rethrow redirect errors - they're not real errors
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+        throw err;
+      }
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
@@ -119,7 +128,6 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
         <VendorCombobox
           vendors={vendors}
           value={vendorId}
-          vendorName={vendorName}
           onValueChange={(id, name) => {
             setVendorId(id);
             setVendorName(name);
@@ -146,11 +154,14 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
 
       <div className="space-y-2">
         <Label htmlFor="payment_method">Payment Method</Label>
-        <Input
-          id="payment_method"
-          name="payment_method"
-          defaultValue={expense?.payment_method ?? ""}
-          placeholder="e.g., Company Card"
+        <PaymentMethodCombobox
+          paymentMethods={paymentMethods}
+          value={paymentMethodId}
+          onValueChange={(id, name) => {
+            setPaymentMethodId(id);
+            setPaymentMethodName(name);
+          }}
+          disabled={loading}
         />
       </div>
 

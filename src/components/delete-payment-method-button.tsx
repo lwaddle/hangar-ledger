@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { deleteVendor, reassignExpensesAndDeleteVendor } from "@/lib/actions/vendors";
+import { deletePaymentMethod, reassignExpensesAndDeletePaymentMethod } from "@/lib/actions/payment-methods";
 import { Button } from "@/components/ui/button";
-import { VendorCombobox } from "@/components/vendor-combobox";
+import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -14,29 +14,29 @@ import {
   AlertDialogTrigger,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import type { Vendor } from "@/types/database";
+import type { PaymentMethod } from "@/types/database";
 
 type Props = {
-  vendorId: string;
-  vendorName: string;
+  paymentMethodId: string;
+  paymentMethodName: string;
   expenseCount: number;
-  vendors: Vendor[];
+  paymentMethods: PaymentMethod[];
 };
 
-export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors }: Props) {
+export function DeletePaymentMethodButton({ paymentMethodId, paymentMethodName, expenseCount, paymentMethods }: Props) {
   const [open, setOpen] = useState(false);
   const [showReassign, setShowReassign] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [targetVendorId, setTargetVendorId] = useState("");
-  const [targetVendorName, setTargetVendorName] = useState("");
+  const [targetPaymentMethodId, setTargetPaymentMethodId] = useState("");
+  const [targetPaymentMethodName, setTargetPaymentMethodName] = useState("");
 
-  // Filter out the current vendor from reassignment options
-  const availableVendors = vendors.filter((v) => v.id !== vendorId);
+  // Filter out the current payment method from reassignment options
+  const availablePaymentMethods = paymentMethods.filter((pm) => pm.id !== paymentMethodId);
 
   async function handleDelete() {
     setLoading(true);
     try {
-      await deleteVendor(vendorId);
+      await deletePaymentMethod(paymentMethodId);
       setOpen(false);
     } catch (err) {
       setLoading(false);
@@ -44,10 +44,10 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
   }
 
   async function handleReassignAndDelete() {
-    if (!targetVendorId) return;
+    if (!targetPaymentMethodId) return;
     setLoading(true);
     try {
-      await reassignExpensesAndDeleteVendor(vendorId, targetVendorId);
+      await reassignExpensesAndDeletePaymentMethod(paymentMethodId, targetPaymentMethodId);
       setOpen(false);
     } catch (err) {
       setLoading(false);
@@ -60,8 +60,8 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
       if (!isOpen) {
         // Reset state when closing
         setShowReassign(false);
-        setTargetVendorId("");
-        setTargetVendorName("");
+        setTargetPaymentMethodId("");
+        setTargetPaymentMethodName("");
       }
     }
   }
@@ -73,12 +73,12 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {vendorName}?</AlertDialogTitle>
+          <AlertDialogTitle>Delete {paymentMethodName}?</AlertDialogTitle>
           <AlertDialogDescription>
             {expenseCount > 0 ? (
               <>
                 <span className="text-amber-600 font-medium">Warning:</span>{" "}
-                {expenseCount} expense{expenseCount !== 1 && "s"} linked to this vendor.
+                {expenseCount} expense{expenseCount !== 1 && "s"} linked to this payment method.
                 {!showReassign && " Choose how to proceed."}
               </>
             ) : (
@@ -90,12 +90,12 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
         {showReassign && (
           <div className="space-y-3">
             <p className="text-sm font-medium">Reassign expenses to:</p>
-            <VendorCombobox
-              vendors={availableVendors}
-              value={targetVendorId}
+            <PaymentMethodCombobox
+              paymentMethods={availablePaymentMethods}
+              value={targetPaymentMethodId}
               onValueChange={(id, name) => {
-                setTargetVendorId(id);
-                setTargetVendorName(name);
+                setTargetPaymentMethodId(id);
+                setTargetPaymentMethodName(name);
               }}
               disabled={loading}
             />
@@ -115,7 +115,7 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
               <Button
                 variant="destructive"
                 onClick={handleReassignAndDelete}
-                disabled={loading || !targetVendorId}
+                disabled={loading || !targetPaymentMethodId}
               >
                 {loading ? "Reassigning..." : "Reassign & Delete"}
               </Button>

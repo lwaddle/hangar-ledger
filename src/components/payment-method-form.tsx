@@ -6,14 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createTrip, updateTrip, type TripFormData } from "@/lib/actions/trips";
-import type { Trip } from "@/types/database";
+import {
+  createPaymentMethodAndRedirect,
+  updatePaymentMethod,
+  type PaymentMethodFormData,
+} from "@/lib/actions/payment-methods";
+import type { PaymentMethod } from "@/types/database";
 
 type Props = {
-  trip?: Trip;
+  paymentMethod?: PaymentMethod;
 };
 
-export function TripForm({ trip }: Props) {
+export function PaymentMethodForm({ paymentMethod }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,18 +28,16 @@ export function TripForm({ trip }: Props) {
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const data: TripFormData = {
+    const data: PaymentMethodFormData = {
       name: formData.get("name") as string,
-      start_date: formData.get("start_date") as string,
-      end_date: (formData.get("end_date") as string) || undefined,
       notes: (formData.get("notes") as string) || undefined,
     };
 
     try {
-      if (trip) {
-        await updateTrip(trip.id, data);
+      if (paymentMethod) {
+        await updatePaymentMethod(paymentMethod.id, data);
       } else {
-        await createTrip(data);
+        await createPaymentMethodAndRedirect(data);
       }
     } catch (err) {
       // Rethrow redirect errors - they're not real errors
@@ -50,36 +52,14 @@ export function TripForm({ trip }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
       <div className="space-y-2">
-        <Label htmlFor="name">Trip Name *</Label>
+        <Label htmlFor="name">Payment Method Name *</Label>
         <Input
           id="name"
           name="name"
-          defaultValue={trip?.name}
-          placeholder="e.g., KLAS to KJFK"
+          defaultValue={paymentMethod?.name}
+          placeholder="e.g., Company Card"
           required
         />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="start_date">Start Date *</Label>
-          <Input
-            id="start_date"
-            name="start_date"
-            type="date"
-            defaultValue={trip?.start_date}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="end_date">End Date</Label>
-          <Input
-            id="end_date"
-            name="end_date"
-            type="date"
-            defaultValue={trip?.end_date ?? ""}
-          />
-        </div>
       </div>
 
       <div className="space-y-2">
@@ -87,8 +67,8 @@ export function TripForm({ trip }: Props) {
         <Textarea
           id="notes"
           name="notes"
-          defaultValue={trip?.notes ?? ""}
-          placeholder="Optional notes about this trip"
+          defaultValue={paymentMethod?.notes ?? ""}
+          placeholder="Optional notes about this payment method"
           rows={3}
         />
       </div>
@@ -97,7 +77,7 @@ export function TripForm({ trip }: Props) {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={loading}>
-          {loading ? "Saving..." : trip ? "Update Trip" : "Create Trip"}
+          {loading ? "Saving..." : paymentMethod ? "Update Payment Method" : "Create Payment Method"}
         </Button>
         <Button
           type="button"

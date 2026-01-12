@@ -40,6 +40,10 @@ export function VendorForm({ vendor }: Props) {
         await createVendorAndRedirect(data);
       }
     } catch (err) {
+      // Rethrow redirect errors - they're not real errors
+      if (err instanceof Error && err.message === "NEXT_REDIRECT") {
+        throw err;
+      }
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
