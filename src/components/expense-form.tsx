@@ -119,7 +119,6 @@ export function ExpenseForm({ expense, trips, vendors, defaultTripId }: Props) {
         <VendorCombobox
           vendors={vendors}
           value={vendorId}
-          vendorName={vendorName}
           onValueChange={(id, name) => {
             setVendorId(id);
             setVendorName(name);

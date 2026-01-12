@@ -8,7 +8,6 @@ import type { Vendor } from "@/types/database";
 type Props = {
   vendors: Vendor[];
   value: string;
-  vendorName: string;
   onValueChange: (vendorId: string, vendorName: string) => void;
   disabled?: boolean;
 };
@@ -16,7 +15,6 @@ type Props = {
 export function VendorCombobox({
   vendors,
   value,
-  vendorName,
   onValueChange,
   disabled,
 }: Props) {

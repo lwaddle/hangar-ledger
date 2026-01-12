@@ -93,7 +93,6 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
             <VendorCombobox
               vendors={availableVendors}
               value={targetVendorId}
-              vendorName={targetVendorName}
               onValueChange={(id, name) => {
                 setTargetVendorId(id);
                 setTargetVendorName(name);
