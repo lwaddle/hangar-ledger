@@ -64,6 +64,25 @@ export type Receipt = {
   uploaded_at: string;
 };
 
+export type ExpenseLineItem = {
+  id: string;
+  expense_id: string;
+  description: string | null;
+  category: string;
+  amount: number;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExpenseLineItemInput = {
+  id?: string;
+  description: string | null;
+  category: string;
+  amount: number;
+  sort_order: number;
+};
+
 // Expense categories
 export const EXPENSE_CATEGORIES = [
   "Fuel",

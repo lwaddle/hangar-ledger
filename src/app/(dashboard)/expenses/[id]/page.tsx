@@ -64,6 +64,26 @@ export default async function ExpenseDetailPage({ params }: Props) {
           </div>
         </div>
 
+        {expense.expense_line_items && expense.expense_line_items.length > 0 && (
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Line Items</p>
+            <div className="space-y-1">
+              {expense.expense_line_items.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between text-sm py-2 border-b last:border-0"
+                >
+                  <div className="flex gap-4">
+                    <span className="text-gray-500 min-w-30">{item.category}</span>
+                    {item.description && <span>{item.description}</span>}
+                  </div>
+                  <span className="font-mono">{formatCurrency(item.amount)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {expense.payment_methods && (
           <div>
             <p className="text-sm text-gray-500">Payment Method</p>

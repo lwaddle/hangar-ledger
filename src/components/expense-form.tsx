@@ -1,21 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   createExpense,
   updateExpense,
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
-import { EXPENSE_CATEGORIES, type Vendor, type PaymentMethod } from "@/types/database";
+import { type Vendor, type PaymentMethod, type ExpenseLineItem } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
+import { LineItemRow } from "@/components/line-item-row";
+import { Plus } from "lucide-react";
+
+type LineItemState = {
+  id?: string;
+  description: string;
+  category: string;
+  amount: string;
+};
 
 type Props = {
   expense?: ExpenseWithTrip;
@@ -25,16 +33,62 @@ type Props = {
   defaultTripId?: string;
 };
 
+const emptyLineItem = (): LineItemState => ({
+  description: "",
+  category: "",
+  amount: "",
+});
+
 export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaultTripId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const tripId = expense?.trip_id ?? defaultTripId;
-  const [category, setCategory] = useState<string>(expense?.category ?? "");
   const [vendorId, setVendorId] = useState<string>(expense?.vendor_id ?? "");
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
   const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
+
+  const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
+    if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
+      return expense.expense_line_items.map((item: ExpenseLineItem) => ({
+        id: item.id,
+        description: item.description ?? "",
+        category: item.category,
+        amount: item.amount.toString(),
+      }));
+    }
+    return [emptyLineItem()];
+  });
+
+  const total = useMemo(() => {
+    return lineItems.reduce((sum, item) => {
+      const amount = parseFloat(item.amount) || 0;
+      return sum + amount;
+    }, 0);
+  }, [lineItems]);
+
+  const updateLineItem = (index: number, field: keyof LineItemState, value: string) => {
+    setLineItems((items) => {
+      const newItems = [...items];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return newItems;
+    });
+  };
+
+  const addLineItem = () => {
+    setLineItems((items) => [...items, emptyLineItem()]);
+  };
+
+  const removeLineItem = (index: number) => {
+    setLineItems((items) => items.filter((_, i) => i !== index));
+  };
+
+  const isValid = useMemo(() => {
+    if (!vendorName) return false;
+    if (lineItems.length === 0) return false;
+    return lineItems.every((item) => item.category && parseFloat(item.amount) > 0);
+  }, [vendorName, lineItems]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -42,16 +96,22 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
     setError(null);
 
     const formData = new FormData(e.currentTarget);
+
     const data: ExpenseFormData = {
       trip_id: tripId || undefined,
       vendor_id: vendorId || undefined,
       payment_method_id: paymentMethodId || undefined,
       date: formData.get("date") as string,
       vendor: vendorName,
-      amount: parseFloat(formData.get("amount") as string),
-      category: category,
       payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
+      line_items: lineItems.map((item, index) => ({
+        id: item.id,
+        description: item.description || null,
+        category: item.category,
+        amount: parseFloat(item.amount) || 0,
+        sort_order: index,
+      })),
     };
 
     try {
@@ -61,7 +121,6 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
         await createExpense(data);
       }
     } catch (err) {
-      // Rethrow redirect errors - they're not real errors
       if (err instanceof Error && err.message === "NEXT_REDIRECT") {
         throw err;
       }
@@ -71,7 +130,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
       {(tripName || expense?.trips?.name) && (
         <div className="space-y-2">
           <Label>Trip</Label>
@@ -91,47 +150,63 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount *</Label>
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            defaultValue={expense?.amount}
-            placeholder="0.00"
-            required
+          <Label htmlFor="vendor">Vendor *</Label>
+          <VendorCombobox
+            vendors={vendors}
+            value={vendorId}
+            onValueChange={(id, name) => {
+              setVendorId(id);
+              setVendorName(name);
+            }}
+            disabled={loading}
           />
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="vendor">Vendor *</Label>
-        <VendorCombobox
-          vendors={vendors}
-          value={vendorId}
-          onValueChange={(id, name) => {
-            setVendorId(id);
-            setVendorName(name);
-          }}
-          disabled={loading}
-        />
-      </div>
+      <div className="space-y-3">
+        <div className="flex justify-between items-center">
+          <Label>Line Items *</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addLineItem}
+            disabled={loading}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add Item
+          </Button>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">Category *</Label>
-        <Select value={category} onValueChange={setCategory} required>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            {EXPENSE_CATEGORIES.map((cat) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-12 gap-2 text-sm text-muted-foreground px-1">
+          <div className="col-span-5">Description</div>
+          <div className="col-span-4">Category</div>
+          <div className="col-span-2 text-right">Amount</div>
+          <div className="col-span-1"></div>
+        </div>
+
+        <div className="space-y-2">
+          {lineItems.map((item, index) => (
+            <LineItemRow
+              key={index}
+              description={item.description}
+              category={item.category}
+              amount={item.amount}
+              onDescriptionChange={(v) => updateLineItem(index, "description", v)}
+              onCategoryChange={(v) => updateLineItem(index, "category", v)}
+              onAmountChange={(v) => updateLineItem(index, "amount", v)}
+              onRemove={() => removeLineItem(index)}
+              canRemove={lineItems.length > 1}
+              disabled={loading}
+            />
+          ))}
+        </div>
+
+        <div className="grid grid-cols-12 gap-2 pt-2 border-t">
+          <div className="col-span-9 text-right font-medium">Total:</div>
+          <div className="col-span-2 text-right font-mono font-bold">${total.toFixed(2)}</div>
+          <div className="col-span-1"></div>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -161,7 +236,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !category || !vendorName}>
+        <Button type="submit" disabled={loading || !isValid}>
           {loading ? "Saving..." : expense ? "Update Expense" : "Create Expense"}
         </Button>
         <Button
