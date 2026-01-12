@@ -28,6 +28,9 @@ export function ExpenseCategoryForm({ category }: Props) {
   const [isGeneralExpense, setIsGeneralExpense] = useState(
     category?.is_general_expense ?? false
   );
+  const [isFuelCategory, setIsFuelCategory] = useState(
+    category?.is_fuel_category ?? false
+  );
 
   const atLeastOneSelected = isFlightExpense || isGeneralExpense;
 
@@ -47,6 +50,7 @@ export function ExpenseCategoryForm({ category }: Props) {
       name: formData.get("name") as string,
       is_flight_expense: isFlightExpense,
       is_general_expense: isGeneralExpense,
+      is_fuel_category: isFuelCategory,
       notes: (formData.get("notes") as string) || undefined,
     };
 
@@ -110,6 +114,22 @@ export function ExpenseCategoryForm({ category }: Props) {
             </Label>
           </div>
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="is_fuel_category"
+            checked={isFuelCategory}
+            onCheckedChange={(checked) => setIsFuelCategory(checked === true)}
+          />
+          <Label htmlFor="is_fuel_category" className="font-normal">
+            Track fuel quantity (gallons/liters)
+          </Label>
+        </div>
+        <p className="text-sm text-gray-500">
+          Enable this for fuel purchases to track quantity in addition to cost
+        </p>
       </div>
 
       <div className="space-y-2">

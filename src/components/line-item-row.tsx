@@ -47,7 +47,8 @@ export function LineItemRow({
   canRemove,
   disabled,
 }: LineItemRowProps) {
-  const isFuel = category === "Fuel";
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const isFuel = selectedCategory?.is_fuel_category ?? false;
 
   function handleCategoryChange(newCategoryId: string) {
     const selectedCategory = categories.find((c) => c.id === newCategoryId);

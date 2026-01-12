@@ -9,6 +9,7 @@ export type ExpenseCategoryFormData = {
   name: string;
   is_flight_expense: boolean;
   is_general_expense: boolean;
+  is_fuel_category: boolean;
   notes?: string;
 };
 
@@ -89,6 +90,7 @@ export async function createExpenseCategory(
         deleted_at: null,
         is_flight_expense: formData.is_flight_expense,
         is_general_expense: formData.is_general_expense,
+        is_fuel_category: formData.is_fuel_category,
         notes: formData.notes || deletedCategory.notes,
         updated_at: new Date().toISOString(),
       })
@@ -108,6 +110,7 @@ export async function createExpenseCategory(
       name: formData.name,
       is_flight_expense: formData.is_flight_expense,
       is_general_expense: formData.is_general_expense,
+      is_fuel_category: formData.is_fuel_category,
       notes: formData.notes || null,
     })
     .select()
@@ -144,6 +147,7 @@ export async function updateExpenseCategory(
       name: formData.name,
       is_flight_expense: formData.is_flight_expense,
       is_general_expense: formData.is_general_expense,
+      is_fuel_category: formData.is_fuel_category,
       notes: formData.notes || null,
     })
     .eq("id", id);

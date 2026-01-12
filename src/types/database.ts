@@ -35,6 +35,7 @@ export type ExpenseCategory = {
   name: string;
   is_flight_expense: boolean;
   is_general_expense: boolean;
+  is_fuel_category: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -87,6 +88,7 @@ export type ExpenseLineItem = {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  expense_categories?: { is_fuel_category: boolean } | null;
 };
 
 export type ExpenseLineItemInput = {

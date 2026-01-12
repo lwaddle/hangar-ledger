@@ -122,12 +122,13 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     if (lineItems.length === 0) return false;
     return lineItems.every((item) => {
       if (!item.categoryId || parseFloat(item.amount) <= 0) return false;
-      if (item.category === "Fuel" && (!item.quantity || parseFloat(item.quantity) <= 0)) {
+      const category = categories.find((c) => c.id === item.categoryId);
+      if (category?.is_fuel_category && (!item.quantity || parseFloat(item.quantity) <= 0)) {
         return false;
       }
       return true;
     });
-  }, [vendorName, lineItems]);
+  }, [vendorName, lineItems, categories]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -146,7 +147,8 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
       notes: (formData.get("notes") as string) || undefined,
       line_items: lineItems.map((item, index) => {
         let quantityGallons: number | null = null;
-        if (item.category === "Fuel" && item.quantity) {
+        const category = categories.find((c) => c.id === item.categoryId);
+        if (category?.is_fuel_category && item.quantity) {
           const qty = parseFloat(item.quantity);
           if (qty > 0) {
             quantityGallons = item.quantityUnit === "liters" ? qty / LITERS_PER_GALLON : qty;

@@ -45,6 +45,7 @@ export function ExpenseCategoryCombobox({
           name,
           is_flight_expense: true,
           is_general_expense: true,
+          is_fuel_category: false,
         });
         setLocalCategories((prev) =>
           [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name))

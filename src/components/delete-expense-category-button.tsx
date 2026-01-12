@@ -36,7 +36,6 @@ export function DeleteExpenseCategoryButton({
   const [showReassign, setShowReassign] = useState(false);
   const [loading, setLoading] = useState(false);
   const [targetCategoryId, setTargetCategoryId] = useState("");
-  const [targetCategoryName, setTargetCategoryName] = useState("");
 
   // Filter out the current category from reassignment options
   const availableCategories = categories.filter((c) => c.id !== categoryId);
@@ -72,7 +71,6 @@ export function DeleteExpenseCategoryButton({
         // Reset state when closing
         setShowReassign(false);
         setTargetCategoryId("");
-        setTargetCategoryName("");
       }
     }
   }
@@ -105,9 +103,8 @@ export function DeleteExpenseCategoryButton({
             <ExpenseCategoryCombobox
               categories={availableCategories}
               value={targetCategoryId}
-              onValueChange={(id, name) => {
+              onValueChange={(id) => {
                 setTargetCategoryId(id);
-                setTargetCategoryName(name);
               }}
               disabled={loading}
             />
@@ -136,18 +133,11 @@ export function DeleteExpenseCategoryButton({
             <>
               <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
               <Button
-                variant="outline"
+                variant="destructive"
                 onClick={() => setShowReassign(true)}
                 disabled={loading}
               >
-                Reassign Line Items
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-              >
-                {loading ? "Deleting..." : "Delete Anyway"}
+                Reassign & Delete
               </Button>
             </>
           ) : (
