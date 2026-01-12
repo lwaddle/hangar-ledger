@@ -24,6 +24,29 @@ export async function getTrips(): Promise<Trip[]> {
   return data ?? [];
 }
 
+export type TripWithTotal = Trip & {
+  total: number;
+};
+
+export async function getTripsWithTotals(): Promise<TripWithTotal[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("trips")
+    .select("*, expenses(amount)")
+    .is("deleted_at", null)
+    .order("start_date", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((trip) => ({
+    ...trip,
+    expenses: undefined,
+    total: (trip.expenses ?? [])
+      .filter((e: { amount: number } | null) => e !== null)
+      .reduce((sum: number, e: { amount: number }) => sum + Number(e.amount), 0),
+  })) as TripWithTotal[];
+}
+
 export async function getTrip(id: string): Promise<Trip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase

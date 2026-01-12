@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTrips } from "@/lib/actions/trips";
+import { getTripsWithTotals } from "@/lib/actions/trips";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,8 +10,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+}
+
 export default async function TripsPage() {
-  const trips = await getTrips();
+  const trips = await getTripsWithTotals();
 
   return (
     <div>
@@ -37,7 +44,7 @@ export default async function TripsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,10 +66,8 @@ export default async function TripsPage() {
                       ? new Date(trip.end_date).toLocaleDateString()
                       : "-"}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/trips/${trip.id}/edit`}>Edit</Link>
-                    </Button>
+                  <TableCell className="text-right font-mono">
+                    {trip.total > 0 ? formatCurrency(trip.total) : "-"}
                   </TableCell>
                 </TableRow>
               ))}
