@@ -30,11 +30,24 @@ export type PaymentMethod = {
   deleted_at: string | null;
 };
 
+export type ExpenseCategory = {
+  id: string;
+  name: string;
+  is_flight_expense: boolean;
+  is_general_expense: boolean;
+  is_fuel_category: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 export type Expense = {
   id: string;
   trip_id: string | null;
   vendor_id: string | null;
   payment_method_id: string | null;
+  category_id: string | null;
   date: string;
   vendor: string;
   amount: number;
@@ -67,6 +80,7 @@ export type Receipt = {
 export type ExpenseLineItem = {
   id: string;
   expense_id: string;
+  category_id: string | null;
   description: string | null;
   category: string;
   amount: number;
@@ -74,10 +88,12 @@ export type ExpenseLineItem = {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  expense_categories?: { is_fuel_category: boolean } | null;
 };
 
 export type ExpenseLineItemInput = {
   id?: string;
+  category_id: string | null;
   description: string | null;
   category: string;
   amount: number;
@@ -85,7 +101,8 @@ export type ExpenseLineItemInput = {
   sort_order: number;
 };
 
-// Expense categories
+// Expense categories - DEPRECATED: Use expense_categories table instead
+// Kept temporarily for backwards compatibility during migration
 export const EXPENSE_CATEGORIES = [
   "Fuel",
   "Maintenance",
@@ -99,7 +116,7 @@ export const EXPENSE_CATEGORIES = [
   "Other",
 ] as const;
 
-export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+export type ExpenseCategoryName = (typeof EXPENSE_CATEGORIES)[number];
 
 // User roles
 export type UserRole = "admin" | "operator" | "viewer";

@@ -91,7 +91,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.description || ""}</TableCell>
                     <TableCell className="text-right">
-                      {item.category === "Fuel" && item.quantity_gallons
+                      {item.quantity_gallons && item.expense_categories?.is_fuel_category
                         ? item.quantity_gallons.toFixed(2)
                         : ""}
                     </TableCell>
@@ -107,7 +107,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
                   <TableCell className="text-right font-mono">
                     {(() => {
                       const totalFuel = expense.expense_line_items
-                        .filter((item) => item.category === "Fuel" && item.quantity_gallons)
+                        .filter((item) => item.quantity_gallons && item.expense_categories?.is_fuel_category)
                         .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
                       return totalFuel > 0 ? totalFuel.toFixed(2) : "";
                     })()}
