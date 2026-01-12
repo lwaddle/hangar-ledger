@@ -87,7 +87,7 @@ export function Combobox({
         onClick={() => !disabled && setOpen(!open)}
         disabled={disabled}
         className={cn(
-          "border-input data-[placeholder]:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 flex w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 h-9",
+          "border-input data-placeholder:text-muted-foreground [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 dark:bg-input/30 dark:hover:bg-input/50 flex w-full items-center justify-between gap-2 rounded-md border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 h-9",
           !selectedOption && "text-muted-foreground"
         )}
       >
@@ -98,7 +98,7 @@ export function Combobox({
       </button>
 
       {open && (
-        <div className="bg-popover text-popover-foreground absolute z-50 mt-1 w-full min-w-[8rem] overflow-hidden rounded-md border shadow-md animate-in fade-in-0 zoom-in-95">
+        <div className="bg-popover text-popover-foreground absolute z-50 mt-1 w-full min-w-32 overflow-hidden rounded-md border shadow-md animate-in fade-in-0 zoom-in-95">
           <Command className="w-full" shouldFilter={false}>
             <div className="flex items-center border-b px-3">
               <Command.Input
@@ -118,7 +118,7 @@ export function Combobox({
                 <div
                   key={option.value}
                   onClick={() => handleSelect(option.value)}
-                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-accent hover:text-accent-foreground"
+                  className="focus:bg-accent focus:text-accent-foreground relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-disabled:pointer-events-none data-disabled:opacity-50 hover:bg-accent hover:text-accent-foreground"
                 >
                   <span className="truncate">{option.label}</span>
                   {option.value === value && (
