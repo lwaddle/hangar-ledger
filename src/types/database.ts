@@ -21,10 +21,20 @@ export type Vendor = {
   deleted_at: string | null;
 };
 
+export type PaymentMethod = {
+  id: string;
+  name: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
 export type Expense = {
   id: string;
   trip_id: string | null;
   vendor_id: string | null;
+  payment_method_id: string | null;
   date: string;
   vendor: string;
   amount: number;

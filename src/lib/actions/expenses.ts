@@ -8,6 +8,7 @@ import type { Expense } from "@/types/database";
 export type ExpenseFormData = {
   trip_id?: string;
   vendor_id?: string;
+  payment_method_id?: string;
   date: string;
   vendor: string;
   amount: number;
@@ -75,6 +76,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   const { error } = await supabase.from("expenses").insert({
     trip_id: formData.trip_id || null,
     vendor_id: formData.vendor_id || null,
+    payment_method_id: formData.payment_method_id || null,
     date: formData.date,
     vendor: formData.vendor,
     amount: formData.amount,
@@ -101,6 +103,7 @@ export async function updateExpense(
     .update({
       trip_id: formData.trip_id || null,
       vendor_id: formData.vendor_id || null,
+      payment_method_id: formData.payment_method_id || null,
       date: formData.date,
       vendor: formData.vendor,
       amount: formData.amount,

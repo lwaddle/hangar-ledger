@@ -7,6 +7,7 @@ const navItems = [
   { href: "/trips", label: "Trips" },
   { href: "/expenses", label: "Expenses" },
   { href: "/vendors", label: "Vendors" },
+  { href: "/payment-methods", label: "Payment Methods" },
   { href: "/fuel", label: "Fuel" },
   { href: "/reports", label: "Reports" },
 ];
