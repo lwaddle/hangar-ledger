@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -50,17 +51,12 @@ export default async function ExpensesPage() {
             </TableHeader>
             <TableBody>
               {expenses.map((expense) => (
-                <TableRow key={expense.id}>
+                <ClickableTableRow key={expense.id} href={`/expenses/${expense.id}`}>
                   <TableCell>
                     {new Date(expense.date).toLocaleDateString()}
                   </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/expenses/${expense.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {expense.vendor}
-                    </Link>
+                  <TableCell className="font-medium">
+                    {expense.vendor}
                     {expense.vendors?.deleted_at && (
                       <span className="text-gray-400 text-sm ml-1">(deleted)</span>
                     )}
@@ -68,12 +64,7 @@ export default async function ExpensesPage() {
                   <TableCell>{expense.category}</TableCell>
                   <TableCell>
                     {expense.trips ? (
-                      <Link
-                        href={`/trips/${expense.trip_id}`}
-                        className="text-blue-600 hover:underline"
-                      >
-                        {expense.trips.name}
-                      </Link>
+                      expense.trips.name
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
@@ -81,7 +72,7 @@ export default async function ExpensesPage() {
                   <TableCell className="text-right font-mono">
                     {formatCurrency(expense.amount)}
                   </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>

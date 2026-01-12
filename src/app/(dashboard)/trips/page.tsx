@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -49,15 +50,8 @@ export default async function TripsPage() {
             </TableHeader>
             <TableBody>
               {trips.map((trip) => (
-                <TableRow key={trip.id}>
-                  <TableCell>
-                    <Link
-                      href={`/trips/${trip.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {trip.name}
-                    </Link>
-                  </TableCell>
+                <ClickableTableRow key={trip.id} href={`/trips/${trip.id}`}>
+                  <TableCell className="font-medium">{trip.name}</TableCell>
                   <TableCell>
                     {new Date(trip.start_date).toLocaleDateString()}
                   </TableCell>
@@ -69,7 +63,7 @@ export default async function TripsPage() {
                   <TableCell className="text-right font-mono">
                     {trip.total > 0 ? formatCurrency(trip.total) : "-"}
                   </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>
