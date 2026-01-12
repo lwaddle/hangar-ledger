@@ -7,12 +7,11 @@ import { DeleteTripButton } from "@/components/delete-trip-button";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ClickableTableRow } from "@/components/clickable-table-row";
+import { ExpandableExpenseRow } from "@/components/expandable-expense-row";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -87,29 +86,20 @@ export default async function TripDetailPage({ params }: Props) {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8" />
                 <TableHead>Date</TableHead>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead className="text-right">Fuel</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {expenses.map((expense) => (
-                <ClickableTableRow key={expense.id} href={`/expenses/${expense.id}`}>
-                  <TableCell>
-                    {new Date(expense.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {expense.vendor}
-                    {expense.vendors?.deleted_at && (
-                      <span className="text-gray-400 text-sm ml-1">(deleted)</span>
-                    )}
-                  </TableCell>
-                  <TableCell>{expense.category}</TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(expense.amount)}
-                  </TableCell>
-                </ClickableTableRow>
+                <ExpandableExpenseRow
+                  key={expense.id}
+                  expense={expense}
+                />
               ))}
             </TableBody>
           </Table>

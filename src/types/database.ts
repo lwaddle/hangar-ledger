@@ -70,6 +70,7 @@ export type ExpenseLineItem = {
   description: string | null;
   category: string;
   amount: number;
+  quantity_gallons: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -80,6 +81,7 @@ export type ExpenseLineItemInput = {
   description: string | null;
   category: string;
   amount: number;
+  quantity_gallons: number | null;
   sort_order: number;
 };
 

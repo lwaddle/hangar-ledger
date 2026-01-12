@@ -18,11 +18,15 @@ import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
 import { Plus } from "lucide-react";
 
+const LITERS_PER_GALLON = 3.78541;
+
 type LineItemState = {
   id?: string;
   description: string;
   category: string;
   amount: string;
+  quantity: string;
+  quantityUnit: "gallons" | "liters";
 };
 
 type Props = {
@@ -37,6 +41,8 @@ const emptyLineItem = (): LineItemState => ({
   description: "",
   category: "",
   amount: "",
+  quantity: "",
+  quantityUnit: "gallons",
 });
 
 export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaultTripId }: Props) {
@@ -56,6 +62,8 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
         description: item.description ?? "",
         category: item.category,
         amount: item.amount.toString(),
+        quantity: item.quantity_gallons?.toString() ?? "",
+        quantityUnit: "gallons" as const,
       }));
     }
     return [emptyLineItem()];
@@ -76,6 +84,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
     });
   };
 
+  const updateLineItemUnit = (index: number, value: "gallons" | "liters") => {
+    setLineItems((items) => {
+      const newItems = [...items];
+      newItems[index] = { ...newItems[index], quantityUnit: value };
+      return newItems;
+    });
+  };
+
   const addLineItem = () => {
     setLineItems((items) => [...items, emptyLineItem()]);
   };
@@ -87,7 +103,13 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
   const isValid = useMemo(() => {
     if (!vendorName) return false;
     if (lineItems.length === 0) return false;
-    return lineItems.every((item) => item.category && parseFloat(item.amount) > 0);
+    return lineItems.every((item) => {
+      if (!item.category || parseFloat(item.amount) <= 0) return false;
+      if (item.category === "Fuel" && (!item.quantity || parseFloat(item.quantity) <= 0)) {
+        return false;
+      }
+      return true;
+    });
   }, [vendorName, lineItems]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -105,13 +127,23 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
       vendor: vendorName,
       payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
-      line_items: lineItems.map((item, index) => ({
-        id: item.id,
-        description: item.description || null,
-        category: item.category,
-        amount: parseFloat(item.amount) || 0,
-        sort_order: index,
-      })),
+      line_items: lineItems.map((item, index) => {
+        let quantityGallons: number | null = null;
+        if (item.category === "Fuel" && item.quantity) {
+          const qty = parseFloat(item.quantity);
+          if (qty > 0) {
+            quantityGallons = item.quantityUnit === "liters" ? qty / LITERS_PER_GALLON : qty;
+          }
+        }
+        return {
+          id: item.id,
+          description: item.description || null,
+          category: item.category,
+          amount: parseFloat(item.amount) || 0,
+          quantity_gallons: quantityGallons,
+          sort_order: index,
+        };
+      }),
     };
 
     try {
@@ -192,9 +224,13 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
               description={item.description}
               category={item.category}
               amount={item.amount}
+              quantity={item.quantity}
+              quantityUnit={item.quantityUnit}
               onDescriptionChange={(v) => updateLineItem(index, "description", v)}
               onCategoryChange={(v) => updateLineItem(index, "category", v)}
               onAmountChange={(v) => updateLineItem(index, "amount", v)}
+              onQuantityChange={(v) => updateLineItem(index, "quantity", v)}
+              onQuantityUnitChange={(v) => updateLineItemUnit(index, v)}
               onRemove={() => removeLineItem(index)}
               canRemove={lineItems.length > 1}
               disabled={loading}

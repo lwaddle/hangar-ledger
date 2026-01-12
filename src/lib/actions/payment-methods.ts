@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { PaymentMethod } from "@/types/database";
+import type { PaymentMethod, ExpenseLineItem } from "@/types/database";
+import type { ExpenseWithLineItems } from "@/lib/actions/expenses";
 
 export type PaymentMethodFormData = {
   name: string;
@@ -120,17 +121,23 @@ export async function deletePaymentMethod(id: string): Promise<void> {
   redirect("/payment-methods");
 }
 
-export async function getExpensesByPaymentMethod(paymentMethodId: string) {
+export async function getExpensesByPaymentMethod(paymentMethodId: string): Promise<ExpenseWithLineItems[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*")
+    .select("*, vendors(deleted_at), expense_line_items(*)")
     .eq("payment_method_id", paymentMethodId)
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+
+  return (data ?? []).map((expense) => ({
+    ...expense,
+    expense_line_items: (expense.expense_line_items ?? []).sort(
+      (a: ExpenseLineItem, b: ExpenseLineItem) => a.sort_order - b.sort_order
+    ),
+  }));
 }
 
 export async function getExpenseCountByPaymentMethod(paymentMethodId: string): Promise<number> {
