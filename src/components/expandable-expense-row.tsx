@@ -25,6 +25,11 @@ export function ExpandableExpenseRow({ expense }: Props) {
   const isItemized = expense.expense_line_items.length > 1;
   const displayCategory = isItemized ? "Itemized" : expense.category;
 
+  // Sum up all fuel gallons from line items
+  const totalFuelGallons = expense.expense_line_items
+    .filter((item) => item.category === "Fuel" && item.quantity_gallons)
+    .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
+
   const handleRowClick = () => {
     router.push(`/expenses/${expense.id}`);
   };
@@ -67,6 +72,9 @@ export function ExpandableExpenseRow({ expense }: Props) {
         </TableCell>
         <TableCell>{displayCategory}</TableCell>
         <TableCell className="text-right font-mono">
+          {totalFuelGallons > 0 ? totalFuelGallons.toFixed(2) : ""}
+        </TableCell>
+        <TableCell className="text-right font-mono">
           {formatCurrency(expense.amount)}
         </TableCell>
       </TableRow>
@@ -78,13 +86,13 @@ export function ExpandableExpenseRow({ expense }: Props) {
             <TableCell />
             <TableCell className="pl-8 text-sm text-muted-foreground">
               {item.description || "-"}
-              {item.category === "Fuel" && item.quantity_gallons && (
-                <span className="ml-2">
-                  ({item.quantity_gallons.toFixed(2)} gal)
-                </span>
-              )}
             </TableCell>
             <TableCell className="text-sm">{item.category}</TableCell>
+            <TableCell className="text-right font-mono text-sm text-muted-foreground">
+              {item.category === "Fuel" && item.quantity_gallons
+                ? item.quantity_gallons.toFixed(2)
+                : ""}
+            </TableCell>
             <TableCell className="text-right font-mono text-sm text-muted-foreground">
               {formatCurrency(item.amount)}
             </TableCell>

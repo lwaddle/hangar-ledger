@@ -46,6 +46,7 @@ export default async function ExpensesPage() {
                 <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Trip</TableHead>
+                <TableHead className="text-right">Fuel</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
@@ -68,6 +69,14 @@ export default async function ExpensesPage() {
                     ) : (
                       <span className="text-gray-400">-</span>
                     )}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">
+                    {(() => {
+                      const totalGallons = expense.expense_line_items
+                        .filter((item) => item.category === "Fuel" && item.quantity_gallons)
+                        .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
+                      return totalGallons > 0 ? totalGallons.toFixed(2) : "";
+                    })()}
                   </TableCell>
                   <TableCell className="text-right font-mono">
                     {formatCurrency(expense.amount)}

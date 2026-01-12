@@ -31,18 +31,26 @@ export type ExpenseWithTrip = Expense & {
 export type ExpenseWithRelations = Expense & {
   trips: { name: string } | null;
   vendors: { deleted_at: string | null } | null;
+  expense_line_items: ExpenseLineItem[];
 };
 
 export async function getExpenses(): Promise<ExpenseWithRelations[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), vendors(deleted_at)")
+    .select("*, trips(name), vendors(deleted_at), expense_line_items(*)")
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
   if (error) throw error;
-  return data ?? [];
+
+  // Sort line items by sort_order for each expense
+  return (data ?? []).map((expense) => ({
+    ...expense,
+    expense_line_items: (expense.expense_line_items ?? []).sort(
+      (a: ExpenseLineItem, b: ExpenseLineItem) => a.sort_order - b.sort_order
+    ),
+  }));
 }
 
 export type ExpenseWithVendor = Expense & {
