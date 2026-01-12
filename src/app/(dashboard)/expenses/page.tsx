@@ -4,19 +4,11 @@ import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ClickableTableRow } from "@/components/clickable-table-row";
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
-}
+import { ExpandableExpenseRow } from "@/components/expandable-expense-row";
 
 export default async function ExpensesPage() {
   const expenses = await getExpenses();
@@ -42,6 +34,7 @@ export default async function ExpensesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8" />
                 <TableHead>Date</TableHead>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
@@ -52,36 +45,11 @@ export default async function ExpensesPage() {
             </TableHeader>
             <TableBody>
               {expenses.map((expense) => (
-                <ClickableTableRow key={expense.id} href={`/expenses/${expense.id}`}>
-                  <TableCell>
-                    {new Date(expense.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {expense.vendor}
-                    {expense.vendors?.deleted_at && (
-                      <span className="text-gray-400 text-sm ml-1">(deleted)</span>
-                    )}
-                  </TableCell>
-                  <TableCell>{expense.category}</TableCell>
-                  <TableCell>
-                    {expense.trips ? (
-                      expense.trips.name
-                    ) : (
-                      <span className="text-gray-400">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {(() => {
-                      const totalGallons = expense.expense_line_items
-                        .filter((item) => item.category === "Fuel" && item.quantity_gallons)
-                        .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
-                      return totalGallons > 0 ? totalGallons.toFixed(2) : "";
-                    })()}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">
-                    {formatCurrency(expense.amount)}
-                  </TableCell>
-                </ClickableTableRow>
+                <ExpandableExpenseRow
+                  key={expense.id}
+                  expense={expense}
+                  showTrip
+                />
               ))}
             </TableBody>
           </Table>

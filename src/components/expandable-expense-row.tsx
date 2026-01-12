@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { ExpenseWithLineItems } from "@/lib/actions/expenses";
+import type { ExpenseWithLineItems, ExpenseWithRelations } from "@/lib/actions/expenses";
 
 type Props = {
-  expense: ExpenseWithLineItems;
+  expense: ExpenseWithLineItems | ExpenseWithRelations;
+  showTrip?: boolean;
 };
 
 function formatCurrency(amount: number): string {
@@ -18,7 +19,7 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-export function ExpandableExpenseRow({ expense }: Props) {
+export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -71,6 +72,15 @@ export function ExpandableExpenseRow({ expense }: Props) {
           )}
         </TableCell>
         <TableCell>{displayCategory}</TableCell>
+        {showTrip && (
+          <TableCell>
+            {"trips" in expense && expense.trips ? (
+              expense.trips.name
+            ) : (
+              <span className="text-gray-400">-</span>
+            )}
+          </TableCell>
+        )}
         <TableCell className="text-right font-mono">
           {totalFuelGallons > 0 ? totalFuelGallons.toFixed(2) : ""}
         </TableCell>
@@ -88,6 +98,7 @@ export function ExpandableExpenseRow({ expense }: Props) {
               {item.description || "-"}
             </TableCell>
             <TableCell className="text-sm">{item.category}</TableCell>
+            {showTrip && <TableCell />}
             <TableCell className="text-right font-mono text-sm text-muted-foreground">
               {item.category === "Fuel" && item.quantity_gallons
                 ? item.quantity_gallons.toFixed(2)
