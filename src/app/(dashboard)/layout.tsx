@@ -6,9 +6,8 @@ import { LogoutButton } from "@/components/logout-button";
 const navItems = [
   { href: "/trips", label: "Trips" },
   { href: "/expenses", label: "Expenses" },
-  { href: "/vendors", label: "Vendors" },
-  { href: "/payment-methods", label: "Payment Methods" },
   { href: "/reports", label: "Reports" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default async function DashboardLayout({
