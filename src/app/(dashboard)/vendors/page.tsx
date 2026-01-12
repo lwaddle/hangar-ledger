@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
 
 export default async function VendorsPage() {
   const vendors = await getVendors();
@@ -36,20 +37,12 @@ export default async function VendorsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {vendors.map((vendor) => (
-                <TableRow key={vendor.id}>
-                  <TableCell>
-                    <Link
-                      href={`/vendors/${vendor.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {vendor.name}
-                    </Link>
-                  </TableCell>
+                <ClickableTableRow key={vendor.id} href={`/vendors/${vendor.id}`}>
+                  <TableCell className="font-medium">{vendor.name}</TableCell>
                   <TableCell className="text-gray-500">
                     {vendor.notes ? (
                       <span className="line-clamp-1">{vendor.notes}</span>
@@ -57,12 +50,7 @@ export default async function VendorsPage() {
                       "-"
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/vendors/${vendor.id}/edit`}>Edit</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>

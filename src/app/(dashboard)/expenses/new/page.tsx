@@ -1,4 +1,4 @@
-import { getTrips } from "@/lib/actions/trips";
+import { getTrip } from "@/lib/actions/trips";
 import { getVendors } from "@/lib/actions/vendors";
 import { getPaymentMethods } from "@/lib/actions/payment-methods";
 import { ExpenseForm } from "@/components/expense-form";
@@ -9,8 +9,8 @@ type Props = {
 
 export default async function NewExpensePage({ searchParams }: Props) {
   const { trip_id } = await searchParams;
-  const [trips, vendors, paymentMethods] = await Promise.all([
-    getTrips(),
+  const [trip, vendors, paymentMethods] = await Promise.all([
+    trip_id ? getTrip(trip_id) : null,
     getVendors(),
     getPaymentMethods(),
   ]);
@@ -18,7 +18,12 @@ export default async function NewExpensePage({ searchParams }: Props) {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">New Expense</h1>
-      <ExpenseForm trips={trips} vendors={vendors} paymentMethods={paymentMethods} defaultTripId={trip_id} />
+      <ExpenseForm
+        vendors={vendors}
+        paymentMethods={paymentMethods}
+        defaultTripId={trip_id}
+        tripName={trip?.name}
+      />
     </div>
   );
 }

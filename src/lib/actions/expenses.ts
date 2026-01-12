@@ -19,6 +19,7 @@ export type ExpenseFormData = {
 
 export type ExpenseWithTrip = Expense & {
   trips: { name: string } | null;
+  payment_methods: { name: string } | null;
 };
 
 export type ExpenseWithRelations = Expense & {
@@ -59,7 +60,7 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name)")
+    .select("*, trips(name), payment_methods(name)")
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -89,8 +90,10 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   revalidatePath("/expenses");
   if (formData.trip_id) {
     revalidatePath(`/trips/${formData.trip_id}`);
+    redirect(`/trips/${formData.trip_id}`);
+  } else {
+    redirect("/expenses");
   }
-  redirect("/expenses");
 }
 
 export async function updateExpense(

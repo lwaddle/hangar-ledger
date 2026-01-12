@@ -6,38 +6,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   createExpense,
   updateExpense,
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
-import { EXPENSE_CATEGORIES, type Trip, type Vendor, type PaymentMethod } from "@/types/database";
+import { EXPENSE_CATEGORIES, type Vendor, type PaymentMethod } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 
 type Props = {
   expense?: ExpenseWithTrip;
-  trips: Trip[];
+  tripName?: string;
   vendors: Vendor[];
   paymentMethods: PaymentMethod[];
   defaultTripId?: string;
 };
 
-export function ExpenseForm({ expense, trips, vendors, paymentMethods, defaultTripId }: Props) {
+export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaultTripId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [tripId, setTripId] = useState<string>(
-    expense?.trip_id ?? defaultTripId ?? "none"
-  );
+  const tripId = expense?.trip_id ?? defaultTripId;
   const [category, setCategory] = useState<string>(expense?.category ?? "");
   const [vendorId, setVendorId] = useState<string>(expense?.vendor_id ?? "");
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
@@ -51,7 +43,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, defaultTr
 
     const formData = new FormData(e.currentTarget);
     const data: ExpenseFormData = {
-      trip_id: tripId === "none" ? undefined : tripId,
+      trip_id: tripId || undefined,
       vendor_id: vendorId || undefined,
       payment_method_id: paymentMethodId || undefined,
       date: formData.get("date") as string,
@@ -80,22 +72,12 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, defaultTr
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-xl">
-      <div className="space-y-2">
-        <Label htmlFor="trip_id">Trip</Label>
-        <Select value={tripId} onValueChange={setTripId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a trip (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No trip</SelectItem>
-            {trips.map((trip) => (
-              <SelectItem key={trip.id} value={trip.id}>
-                {trip.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {(tripName || expense?.trips?.name) && (
+        <div className="space-y-2">
+          <Label>Trip</Label>
+          <p className="text-sm py-2">{tripName || expense?.trips?.name}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

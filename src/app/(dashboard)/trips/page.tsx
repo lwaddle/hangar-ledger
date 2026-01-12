@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTrips } from "@/lib/actions/trips";
+import { getTripsWithTotals } from "@/lib/actions/trips";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -9,9 +9,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
+
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(amount);
+}
 
 export default async function TripsPage() {
-  const trips = await getTrips();
+  const trips = await getTripsWithTotals();
 
   return (
     <div>
@@ -37,20 +45,13 @@ export default async function TripsPage() {
                 <TableHead>Name</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {trips.map((trip) => (
-                <TableRow key={trip.id}>
-                  <TableCell>
-                    <Link
-                      href={`/trips/${trip.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {trip.name}
-                    </Link>
-                  </TableCell>
+                <ClickableTableRow key={trip.id} href={`/trips/${trip.id}`}>
+                  <TableCell className="font-medium">{trip.name}</TableCell>
                   <TableCell>
                     {new Date(trip.start_date).toLocaleDateString()}
                   </TableCell>
@@ -59,12 +60,10 @@ export default async function TripsPage() {
                       ? new Date(trip.end_date).toLocaleDateString()
                       : "-"}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/trips/${trip.id}/edit`}>Edit</Link>
-                    </Button>
+                  <TableCell className="text-right font-mono">
+                    {trip.total > 0 ? formatCurrency(trip.total) : "-"}
                   </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>

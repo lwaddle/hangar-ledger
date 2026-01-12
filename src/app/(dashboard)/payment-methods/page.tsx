@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
 
 export default async function PaymentMethodsPage() {
   const paymentMethods = await getPaymentMethods();
@@ -36,20 +37,12 @@ export default async function PaymentMethodsPage() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Notes</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paymentMethods.map((paymentMethod) => (
-                <TableRow key={paymentMethod.id}>
-                  <TableCell>
-                    <Link
-                      href={`/payment-methods/${paymentMethod.id}`}
-                      className="text-blue-600 hover:underline font-medium"
-                    >
-                      {paymentMethod.name}
-                    </Link>
-                  </TableCell>
+                <ClickableTableRow key={paymentMethod.id} href={`/payment-methods/${paymentMethod.id}`}>
+                  <TableCell className="font-medium">{paymentMethod.name}</TableCell>
                   <TableCell className="text-gray-500">
                     {paymentMethod.notes ? (
                       <span className="line-clamp-1">{paymentMethod.notes}</span>
@@ -57,12 +50,7 @@ export default async function PaymentMethodsPage() {
                       "-"
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/payment-methods/${paymentMethod.id}/edit`}>Edit</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>

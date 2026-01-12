@@ -64,10 +64,10 @@ export default async function ExpenseDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {expense.payment_method && (
+        {expense.payment_methods && (
           <div>
             <p className="text-sm text-gray-500">Payment Method</p>
-            <p>{expense.payment_method}</p>
+            <p>{expense.payment_methods.name}</p>
           </div>
         )}
 

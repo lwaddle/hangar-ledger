@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ClickableTableRow } from "@/components/clickable-table-row";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -94,17 +95,12 @@ export default async function TripDetailPage({ params }: Props) {
             </TableHeader>
             <TableBody>
               {expenses.map((expense) => (
-                <TableRow key={expense.id}>
+                <ClickableTableRow key={expense.id} href={`/expenses/${expense.id}`}>
                   <TableCell>
                     {new Date(expense.date).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Link
-                      href={`/expenses/${expense.id}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {expense.vendor}
-                    </Link>
+                    {expense.vendor}
                     {expense.vendors?.deleted_at && (
                       <span className="text-gray-400 text-sm ml-1">(deleted)</span>
                     )}
@@ -113,7 +109,7 @@ export default async function TripDetailPage({ params }: Props) {
                   <TableCell className="text-right font-mono">
                     {formatCurrency(expense.amount)}
                   </TableCell>
-                </TableRow>
+                </ClickableTableRow>
               ))}
             </TableBody>
           </Table>
