@@ -76,6 +76,11 @@ export default async function ExpenseDetailPage({ params }: Props) {
                   <div className="flex gap-4">
                     <span className="text-gray-500 min-w-30">{item.category}</span>
                     {item.description && <span>{item.description}</span>}
+                    {item.category === "Fuel" && item.quantity_gallons && (
+                      <span className="text-gray-500">
+                        ({item.quantity_gallons.toFixed(2)} gal)
+                      </span>
+                    )}
                   </div>
                   <span className="font-mono">{formatCurrency(item.amount)}</span>
                 </div>
