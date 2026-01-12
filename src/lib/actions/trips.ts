@@ -65,16 +65,21 @@ export async function getTrip(id: string): Promise<Trip | null> {
 
 export async function createTrip(formData: TripFormData): Promise<void> {
   const supabase = await createClient();
-  const { error } = await supabase.from("trips").insert({
-    name: formData.name,
-    start_date: formData.start_date,
-    end_date: formData.end_date || null,
-    notes: formData.notes || null,
-  });
+  const { data, error } = await supabase
+    .from("trips")
+    .insert({
+      name: formData.name,
+      start_date: formData.start_date,
+      end_date: formData.end_date || null,
+      notes: formData.notes || null,
+    })
+    .select("id")
+    .single();
 
   if (error) throw error;
   revalidatePath("/trips");
-  redirect("/trips");
+  revalidatePath(`/trips/${data.id}`);
+  redirect(`/trips/${data.id}`);
 }
 
 export async function updateTrip(
