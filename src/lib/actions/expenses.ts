@@ -90,8 +90,10 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   revalidatePath("/expenses");
   if (formData.trip_id) {
     revalidatePath(`/trips/${formData.trip_id}`);
+    redirect(`/trips/${formData.trip_id}`);
+  } else {
+    redirect("/expenses");
   }
-  redirect("/expenses");
 }
 
 export async function updateExpense(
