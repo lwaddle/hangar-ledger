@@ -7,6 +7,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -100,6 +101,22 @@ export default async function ExpenseDetailPage({ params }: Props) {
                   </TableRow>
                 ))}
               </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell colSpan={2} className="font-medium">Total</TableCell>
+                  <TableCell className="text-right font-mono">
+                    {(() => {
+                      const totalFuel = expense.expense_line_items
+                        .filter((item) => item.category === "Fuel" && item.quantity_gallons)
+                        .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
+                      return totalFuel > 0 ? totalFuel.toFixed(2) : "";
+                    })()}
+                  </TableCell>
+                  <TableCell className="text-right font-mono font-medium">
+                    {formatCurrency(expense.amount)}
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
             </Table>
           </div>
         )}
