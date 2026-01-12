@@ -12,7 +12,12 @@ import {
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
-import { type Vendor, type PaymentMethod, type ExpenseLineItem } from "@/types/database";
+import {
+  type Vendor,
+  type PaymentMethod,
+  type ExpenseLineItem,
+  type ExpenseCategory,
+} from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
@@ -24,6 +29,7 @@ type LineItemState = {
   id?: string;
   description: string;
   category: string;
+  categoryId: string;
   amount: string;
   quantity: string;
   quantityUnit: "gallons" | "liters";
@@ -34,18 +40,20 @@ type Props = {
   tripName?: string;
   vendors: Vendor[];
   paymentMethods: PaymentMethod[];
+  categories: ExpenseCategory[];
   defaultTripId?: string;
 };
 
 const emptyLineItem = (): LineItemState => ({
   description: "",
   category: "",
+  categoryId: "",
   amount: "",
   quantity: "",
   quantityUnit: "gallons",
 });
 
-export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaultTripId }: Props) {
+export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +69,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
         id: item.id,
         description: item.description ?? "",
         category: item.category,
+        categoryId: item.category_id ?? "",
         amount: item.amount.toString(),
         quantity: item.quantity_gallons?.toString() ?? "",
         quantityUnit: "gallons" as const,
@@ -80,6 +89,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
     setLineItems((items) => {
       const newItems = [...items];
       newItems[index] = { ...newItems[index], [field]: value };
+      return newItems;
+    });
+  };
+
+  const updateLineItemCategory = (index: number, categoryId: string, categoryName: string) => {
+    setLineItems((items) => {
+      const newItems = [...items];
+      newItems[index] = { ...newItems[index], categoryId, category: categoryName };
       return newItems;
     });
   };
@@ -104,7 +121,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
     if (!vendorName) return false;
     if (lineItems.length === 0) return false;
     return lineItems.every((item) => {
-      if (!item.category || parseFloat(item.amount) <= 0) return false;
+      if (!item.categoryId || parseFloat(item.amount) <= 0) return false;
       if (item.category === "Fuel" && (!item.quantity || parseFloat(item.quantity) <= 0)) {
         return false;
       }
@@ -137,6 +154,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
         }
         return {
           id: item.id,
+          category_id: item.categoryId || null,
           description: item.description || null,
           category: item.category,
           amount: parseFloat(item.amount) || 0,
@@ -223,11 +241,13 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, defaul
               key={index}
               description={item.description}
               category={item.category}
+              categoryId={item.categoryId}
               amount={item.amount}
               quantity={item.quantity}
               quantityUnit={item.quantityUnit}
+              categories={categories}
               onDescriptionChange={(v) => updateLineItem(index, "description", v)}
-              onCategoryChange={(v) => updateLineItem(index, "category", v)}
+              onCategoryChange={(id, name) => updateLineItemCategory(index, id, name)}
               onAmountChange={(v) => updateLineItem(index, "amount", v)}
               onQuantityChange={(v) => updateLineItem(index, "quantity", v)}
               onQuantityUnitChange={(v) => updateLineItemUnit(index, v)}

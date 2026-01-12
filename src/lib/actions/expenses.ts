@@ -16,10 +16,20 @@ export type ExpenseFormData = {
   line_items: ExpenseLineItemInput[];
 };
 
-function getPrimaryCategory(lineItems: ExpenseLineItemInput[]): string {
-  if (lineItems.length === 0) return "Other";
-  if (lineItems.length === 1) return lineItems[0].category;
-  return lineItems.reduce((max, item) => (item.amount > max.amount ? item : max)).category;
+function getPrimaryCategory(lineItems: ExpenseLineItemInput[]): {
+  category: string;
+  category_id: string | null;
+} {
+  if (lineItems.length === 0) return { category: "Other", category_id: null };
+  if (lineItems.length === 1)
+    return {
+      category: lineItems[0].category,
+      category_id: lineItems[0].category_id,
+    };
+  const maxItem = lineItems.reduce((max, item) =>
+    item.amount > max.amount ? item : max
+  );
+  return { category: maxItem.category, category_id: maxItem.category_id };
 }
 
 export type ExpenseWithTrip = Expense & {
@@ -107,7 +117,8 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   const supabase = await createClient();
 
   const totalAmount = formData.line_items.reduce((sum, item) => sum + item.amount, 0);
-  const primaryCategory = getPrimaryCategory(formData.line_items);
+  const { category: primaryCategory, category_id: primaryCategoryId } =
+    getPrimaryCategory(formData.line_items);
 
   const { data: expense, error: expenseError } = await supabase
     .from("expenses")
@@ -115,6 +126,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
       trip_id: formData.trip_id || null,
       vendor_id: formData.vendor_id || null,
       payment_method_id: formData.payment_method_id || null,
+      category_id: primaryCategoryId,
       date: formData.date,
       vendor: formData.vendor,
       amount: totalAmount,
@@ -129,6 +141,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
 
   const lineItemsToInsert = formData.line_items.map((item, index) => ({
     expense_id: expense.id,
+    category_id: item.category_id,
     description: item.description || null,
     category: item.category,
     amount: item.amount,
@@ -158,7 +171,8 @@ export async function updateExpense(
   const supabase = await createClient();
 
   const totalAmount = formData.line_items.reduce((sum, item) => sum + item.amount, 0);
-  const primaryCategory = getPrimaryCategory(formData.line_items);
+  const { category: primaryCategory, category_id: primaryCategoryId } =
+    getPrimaryCategory(formData.line_items);
 
   const { error: expenseError } = await supabase
     .from("expenses")
@@ -166,6 +180,7 @@ export async function updateExpense(
       trip_id: formData.trip_id || null,
       vendor_id: formData.vendor_id || null,
       payment_method_id: formData.payment_method_id || null,
+      category_id: primaryCategoryId,
       date: formData.date,
       vendor: formData.vendor,
       amount: totalAmount,
@@ -187,6 +202,7 @@ export async function updateExpense(
 
   const lineItemsToInsert = formData.line_items.map((item, index) => ({
     expense_id: id,
+    category_id: item.category_id,
     description: item.description || null,
     category: item.category,
     amount: item.amount,

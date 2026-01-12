@@ -14,10 +14,10 @@ const settingsItems = [
     enabled: true,
   },
   {
-    href: "/settings/expense-categories",
+    href: "/expense-categories",
     label: "Expense Categories",
     description: "Manage categories for organizing expenses",
-    enabled: false,
+    enabled: true,
   },
   {
     href: "/settings/import-export",

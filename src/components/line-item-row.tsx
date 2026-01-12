@@ -9,17 +9,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EXPENSE_CATEGORIES } from "@/types/database";
+import type { ExpenseCategory } from "@/types/database";
 import { X } from "lucide-react";
 
 type LineItemRowProps = {
   description: string;
   category: string;
+  categoryId: string;
   amount: string;
   quantity: string;
   quantityUnit: "gallons" | "liters";
+  categories: ExpenseCategory[];
   onDescriptionChange: (value: string) => void;
-  onCategoryChange: (value: string) => void;
+  onCategoryChange: (categoryId: string, categoryName: string) => void;
   onAmountChange: (value: string) => void;
   onQuantityChange: (value: string) => void;
   onQuantityUnitChange: (value: "gallons" | "liters") => void;
@@ -31,9 +33,11 @@ type LineItemRowProps = {
 export function LineItemRow({
   description,
   category,
+  categoryId,
   amount,
   quantity,
   quantityUnit,
+  categories,
   onDescriptionChange,
   onCategoryChange,
   onAmountChange,
@@ -44,6 +48,13 @@ export function LineItemRow({
   disabled,
 }: LineItemRowProps) {
   const isFuel = category === "Fuel";
+
+  function handleCategoryChange(newCategoryId: string) {
+    const selectedCategory = categories.find((c) => c.id === newCategoryId);
+    if (selectedCategory) {
+      onCategoryChange(selectedCategory.id, selectedCategory.name);
+    }
+  }
 
   return (
     <div className="space-y-2">
@@ -58,14 +69,18 @@ export function LineItemRow({
         </div>
 
         <div className="col-span-4">
-          <Select value={category} onValueChange={onCategoryChange} disabled={disabled}>
+          <Select
+            value={categoryId}
+            onValueChange={handleCategoryChange}
+            disabled={disabled}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              {EXPENSE_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
+              {categories.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
                 </SelectItem>
               ))}
             </SelectContent>
