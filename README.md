@@ -71,6 +71,10 @@ Set these in Vercel dashboard:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `R2_ACCOUNT_ID` - Cloudflare account ID
+- `R2_ACCESS_KEY_ID` - R2 API token access key
+- `R2_SECRET_ACCESS_KEY` - R2 API token secret
+- `R2_BUCKET_NAME` - R2 bucket name for receipt storage
 
 ## Documentation
 
