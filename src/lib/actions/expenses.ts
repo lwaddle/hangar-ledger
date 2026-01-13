@@ -48,7 +48,7 @@ export async function getExpenses(): Promise<ExpenseWithRelations[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), vendors(deleted_at), expense_line_items(*, expense_categories(is_fuel_category))")
+    .select("*, trips(name), vendors(deleted_at), expense_line_items(*)")
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
@@ -75,7 +75,7 @@ export async function getExpensesByTrip(tripId: string): Promise<ExpenseWithLine
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, vendors(deleted_at), expense_line_items(*, expense_categories(is_fuel_category))")
+    .select("*, vendors(deleted_at), expense_line_items(*)")
     .eq("trip_id", tripId)
     .is("deleted_at", null)
     .order("date", { ascending: false });
@@ -95,7 +95,7 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), payment_methods(name), expense_line_items(*, expense_categories(is_fuel_category))")
+    .select("*, trips(name), payment_methods(name), expense_line_items(*)")
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -145,7 +145,6 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
     description: item.description || null,
     category: item.category,
     amount: item.amount,
-    quantity_gallons: item.quantity_gallons,
     sort_order: index,
   }));
 
@@ -206,7 +205,6 @@ export async function updateExpense(
     description: item.description || null,
     category: item.category,
     amount: item.amount,
-    quantity_gallons: item.quantity_gallons,
     sort_order: index,
   }));
 

@@ -14,17 +14,12 @@ import { X } from "lucide-react";
 
 type LineItemRowProps = {
   description: string;
-  category: string;
   categoryId: string;
   amount: string;
-  quantity: string;
-  quantityUnit: "gallons" | "liters";
   categories: ExpenseCategory[];
   onDescriptionChange: (value: string) => void;
   onCategoryChange: (categoryId: string, categoryName: string) => void;
   onAmountChange: (value: string) => void;
-  onQuantityChange: (value: string) => void;
-  onQuantityUnitChange: (value: "gallons" | "liters") => void;
   onRemove: () => void;
   canRemove: boolean;
   disabled?: boolean;
@@ -32,24 +27,16 @@ type LineItemRowProps = {
 
 export function LineItemRow({
   description,
-  category,
   categoryId,
   amount,
-  quantity,
-  quantityUnit,
   categories,
   onDescriptionChange,
   onCategoryChange,
   onAmountChange,
-  onQuantityChange,
-  onQuantityUnitChange,
   onRemove,
   canRemove,
   disabled,
 }: LineItemRowProps) {
-  const selectedCategory = categories.find((c) => c.id === categoryId);
-  const isFuel = selectedCategory?.is_fuel_category ?? false;
-
   function handleCategoryChange(newCategoryId: string) {
     const selectedCategory = categories.find((c) => c.id === newCategoryId);
     if (selectedCategory) {
@@ -114,40 +101,6 @@ export function LineItemRow({
           </Button>
         </div>
       </div>
-
-      {isFuel && (
-        <div className="grid grid-cols-12 gap-2 items-start pl-4">
-          <div className="col-span-5 flex items-center gap-2">
-            <span className="text-sm text-muted-foreground shrink-0">Quantity:</span>
-            <Input
-              type="number"
-              step="0.001"
-              min="0"
-              placeholder="0.000"
-              value={quantity}
-              onChange={(e) => onQuantityChange(e.target.value)}
-              disabled={disabled}
-              className="text-right font-mono"
-            />
-          </div>
-          <div className="col-span-3">
-            <Select
-              value={quantityUnit}
-              onValueChange={(v) => onQuantityUnitChange(v as "gallons" | "liters")}
-              disabled={disabled}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="gallons">Gallons</SelectItem>
-                <SelectItem value="liters">Liters</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="col-span-4"></div>
-        </div>
-      )}
     </div>
   );
 }

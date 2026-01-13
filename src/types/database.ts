@@ -35,7 +35,6 @@ export type ExpenseCategory = {
   name: string;
   is_flight_expense: boolean;
   is_general_expense: boolean;
-  is_fuel_category: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -59,15 +58,6 @@ export type Expense = {
   deleted_at: string | null;
 };
 
-export type FuelEntry = {
-  id: string;
-  expense_id: string;
-  gallons: number;
-  cost_per_gallon: number;
-  location: string | null;
-  created_at: string;
-};
-
 export type Receipt = {
   id: string;
   expense_id: string;
@@ -84,11 +74,9 @@ export type ExpenseLineItem = {
   description: string | null;
   category: string;
   amount: number;
-  quantity_gallons: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
-  expense_categories?: { is_fuel_category: boolean } | null;
 };
 
 export type ExpenseLineItemInput = {
@@ -97,7 +85,6 @@ export type ExpenseLineItemInput = {
   description: string | null;
   category: string;
   amount: number;
-  quantity_gallons: number | null;
   sort_order: number;
 };
 

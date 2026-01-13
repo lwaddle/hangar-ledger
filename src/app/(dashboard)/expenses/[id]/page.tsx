@@ -81,7 +81,6 @@ export default async function ExpenseDetailPage({ params }: Props) {
                 <TableRow>
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Fuel</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
@@ -90,11 +89,6 @@ export default async function ExpenseDetailPage({ params }: Props) {
                   <TableRow key={item.id}>
                     <TableCell>{item.category}</TableCell>
                     <TableCell>{item.description || ""}</TableCell>
-                    <TableCell className="text-right">
-                      {item.quantity_gallons && item.expense_categories?.is_fuel_category
-                        ? item.quantity_gallons.toFixed(2)
-                        : ""}
-                    </TableCell>
                     <TableCell className="text-right font-mono">
                       {formatCurrency(item.amount)}
                     </TableCell>
@@ -104,14 +98,6 @@ export default async function ExpenseDetailPage({ params }: Props) {
               <TableFooter>
                 <TableRow>
                   <TableCell colSpan={2} className="font-medium">Total</TableCell>
-                  <TableCell className="text-right font-mono">
-                    {(() => {
-                      const totalFuel = expense.expense_line_items
-                        .filter((item) => item.quantity_gallons && item.expense_categories?.is_fuel_category)
-                        .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
-                      return totalFuel > 0 ? totalFuel.toFixed(2) : "";
-                    })()}
-                  </TableCell>
                   <TableCell className="text-right font-mono font-medium">
                     {formatCurrency(expense.amount)}
                   </TableCell>

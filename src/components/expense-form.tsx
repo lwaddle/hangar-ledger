@@ -23,16 +23,12 @@ import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
 import { Plus } from "lucide-react";
 
-const LITERS_PER_GALLON = 3.78541;
-
 type LineItemState = {
   id?: string;
   description: string;
   category: string;
   categoryId: string;
   amount: string;
-  quantity: string;
-  quantityUnit: "gallons" | "liters";
 };
 
 type Props = {
@@ -49,8 +45,6 @@ const emptyLineItem = (): LineItemState => ({
   category: "",
   categoryId: "",
   amount: "",
-  quantity: "",
-  quantityUnit: "gallons",
 });
 
 export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId }: Props) {
@@ -71,8 +65,6 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
         category: item.category,
         categoryId: item.category_id ?? "",
         amount: item.amount.toString(),
-        quantity: item.quantity_gallons?.toString() ?? "",
-        quantityUnit: "gallons" as const,
       }));
     }
     return [emptyLineItem()];
@@ -101,14 +93,6 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     });
   };
 
-  const updateLineItemUnit = (index: number, value: "gallons" | "liters") => {
-    setLineItems((items) => {
-      const newItems = [...items];
-      newItems[index] = { ...newItems[index], quantityUnit: value };
-      return newItems;
-    });
-  };
-
   const addLineItem = () => {
     setLineItems((items) => [...items, emptyLineItem()]);
   };
@@ -122,13 +106,9 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     if (lineItems.length === 0) return false;
     return lineItems.every((item) => {
       if (!item.categoryId || parseFloat(item.amount) <= 0) return false;
-      const category = categories.find((c) => c.id === item.categoryId);
-      if (category?.is_fuel_category && (!item.quantity || parseFloat(item.quantity) <= 0)) {
-        return false;
-      }
       return true;
     });
-  }, [vendorName, lineItems, categories]);
+  }, [vendorName, lineItems]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -145,25 +125,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
       vendor: vendorName,
       payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
-      line_items: lineItems.map((item, index) => {
-        let quantityGallons: number | null = null;
-        const category = categories.find((c) => c.id === item.categoryId);
-        if (category?.is_fuel_category && item.quantity) {
-          const qty = parseFloat(item.quantity);
-          if (qty > 0) {
-            quantityGallons = item.quantityUnit === "liters" ? qty / LITERS_PER_GALLON : qty;
-          }
-        }
-        return {
-          id: item.id,
-          category_id: item.categoryId || null,
-          description: item.description || null,
-          category: item.category,
-          amount: parseFloat(item.amount) || 0,
-          quantity_gallons: quantityGallons,
-          sort_order: index,
-        };
-      }),
+      line_items: lineItems.map((item, index) => ({
+        id: item.id,
+        category_id: item.categoryId || null,
+        description: item.description || null,
+        category: item.category,
+        amount: parseFloat(item.amount) || 0,
+        sort_order: index,
+      })),
     };
 
     try {
@@ -242,17 +211,12 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
             <LineItemRow
               key={index}
               description={item.description}
-              category={item.category}
               categoryId={item.categoryId}
               amount={item.amount}
-              quantity={item.quantity}
-              quantityUnit={item.quantityUnit}
               categories={categories}
               onDescriptionChange={(v) => updateLineItem(index, "description", v)}
               onCategoryChange={(id, name) => updateLineItemCategory(index, id, name)}
               onAmountChange={(v) => updateLineItem(index, "amount", v)}
-              onQuantityChange={(v) => updateLineItem(index, "quantity", v)}
-              onQuantityUnitChange={(v) => updateLineItemUnit(index, v)}
               onRemove={() => removeLineItem(index)}
               canRemove={lineItems.length > 1}
               disabled={loading}

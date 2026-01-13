@@ -39,7 +39,6 @@ export default async function ExpensesPage() {
                 <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Trip</TableHead>
-                <TableHead className="text-right">Fuel</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
