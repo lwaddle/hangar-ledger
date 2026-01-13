@@ -180,6 +180,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
               setVendorName(name);
             }}
             disabled={loading}
+            includeInactiveId={expense?.vendor_id ?? undefined}
           />
         </div>
       </div>
@@ -220,6 +221,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
               onRemove={() => removeLineItem(index)}
               canRemove={lineItems.length > 1}
               disabled={loading}
+              includeInactiveCategoryId={item.categoryId || undefined}
             />
           ))}
         </div>
@@ -241,6 +243,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
             setPaymentMethodName(name);
           }}
           disabled={loading}
+          includeInactiveId={expense?.payment_method_id ?? undefined}
         />
       </div>
 

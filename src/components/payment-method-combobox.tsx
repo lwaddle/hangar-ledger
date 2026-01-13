@@ -10,6 +10,7 @@ type Props = {
   value: string;
   onValueChange: (paymentMethodId: string, paymentMethodName: string) => void;
   disabled?: boolean;
+  includeInactiveId?: string;
 };
 
 export function PaymentMethodCombobox({
@@ -17,14 +18,17 @@ export function PaymentMethodCombobox({
   value,
   onValueChange,
   disabled,
+  includeInactiveId,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const [localPaymentMethods, setLocalPaymentMethods] = useState<PaymentMethod[]>(paymentMethods);
 
-  const options: ComboboxOption[] = localPaymentMethods.map((pm) => ({
-    value: pm.id,
-    label: pm.name,
-  }));
+  const options: ComboboxOption[] = localPaymentMethods
+    .filter((pm) => pm.is_active || pm.id === includeInactiveId)
+    .map((pm) => ({
+      value: pm.id,
+      label: pm.is_active ? pm.name : `${pm.name} (inactive)`,
+    }));
 
   function handleValueChange(paymentMethodId: string) {
     const paymentMethod = localPaymentMethods.find((pm) => pm.id === paymentMethodId);

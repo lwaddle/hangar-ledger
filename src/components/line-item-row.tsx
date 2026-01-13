@@ -23,6 +23,7 @@ type LineItemRowProps = {
   onRemove: () => void;
   canRemove: boolean;
   disabled?: boolean;
+  includeInactiveCategoryId?: string;
 };
 
 export function LineItemRow({
@@ -36,7 +37,13 @@ export function LineItemRow({
   onRemove,
   canRemove,
   disabled,
+  includeInactiveCategoryId,
 }: LineItemRowProps) {
+  // Filter to only show active categories, plus the currently selected inactive one if any
+  const filteredCategories = categories.filter(
+    (c) => c.is_active || c.id === includeInactiveCategoryId
+  );
+
   function handleCategoryChange(newCategoryId: string) {
     const selectedCategory = categories.find((c) => c.id === newCategoryId);
     if (selectedCategory) {
@@ -66,9 +73,9 @@ export function LineItemRow({
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((cat) => (
+              {filteredCategories.map((cat) => (
                 <SelectItem key={cat.id} value={cat.id}>
-                  {cat.name}
+                  {cat.is_active ? cat.name : `${cat.name} (inactive)`}
                 </SelectItem>
               ))}
             </SelectContent>

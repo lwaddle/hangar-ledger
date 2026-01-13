@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
+import { InactiveBadge } from "@/components/inactive-badge";
 
 export default async function ExpenseCategoriesPage() {
   const categories = await getExpenseCategories();
@@ -54,6 +55,7 @@ export default async function ExpenseCategoriesPage() {
                           Built-in
                         </span>
                       )}
+                      {!category.is_active && <InactiveBadge />}
                     </span>
                   </TableCell>
                 </ClickableTableRow>

@@ -34,8 +34,11 @@ function getPrimaryCategory(lineItems: ExpenseLineItemInput[]): {
 
 export type ExpenseWithTrip = Expense & {
   trips: { name: string } | null;
-  payment_methods: { name: string } | null;
-  expense_line_items?: ExpenseLineItem[];
+  vendors: { is_active: boolean } | null;
+  payment_methods: { name: string; is_active: boolean } | null;
+  expense_line_items?: (ExpenseLineItem & {
+    expense_categories: { is_active: boolean } | null;
+  })[];
 };
 
 export type ExpenseWithRelations = Expense & {
@@ -95,7 +98,7 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), payment_methods(name), expense_line_items(*)")
+    .select("*, trips(name), vendors(is_active), payment_methods(name, is_active), expense_line_items(*, expense_categories(is_active))")
     .eq("id", id)
     .is("deleted_at", null)
     .single();

@@ -16,6 +16,7 @@ export type Vendor = {
   id: string;
   name: string;
   notes: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -25,6 +26,7 @@ export type PaymentMethod = {
   id: string;
   name: string;
   notes: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -34,6 +36,7 @@ export type ExpenseCategory = {
   id: string;
   name: string;
   is_system: boolean;
+  is_active: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;

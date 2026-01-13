@@ -10,6 +10,7 @@ type Props = {
   value: string;
   onValueChange: (vendorId: string, vendorName: string) => void;
   disabled?: boolean;
+  includeInactiveId?: string;
 };
 
 export function VendorCombobox({
@@ -17,14 +18,17 @@ export function VendorCombobox({
   value,
   onValueChange,
   disabled,
+  includeInactiveId,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const [localVendors, setLocalVendors] = useState<Vendor[]>(vendors);
 
-  const options: ComboboxOption[] = localVendors.map((v) => ({
-    value: v.id,
-    label: v.name,
-  }));
+  const options: ComboboxOption[] = localVendors
+    .filter((v) => v.is_active || v.id === includeInactiveId)
+    .map((v) => ({
+      value: v.id,
+      label: v.is_active ? v.name : `${v.name} (inactive)`,
+    }));
 
   function handleValueChange(vendorId: string) {
     const vendor = localVendors.find((v) => v.id === vendorId);

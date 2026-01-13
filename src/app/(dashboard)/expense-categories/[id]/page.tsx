@@ -7,6 +7,8 @@ import {
 } from "@/lib/actions/expense-categories";
 import { Button } from "@/components/ui/button";
 import { DeleteExpenseCategoryButton } from "@/components/delete-expense-category-button";
+import { ToggleActiveButton } from "@/components/toggle-active-button";
+import { InactiveBadge } from "@/components/inactive-badge";
 import {
   Table,
   TableBody,
@@ -56,6 +58,7 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
                 Built-in
               </span>
             )}
+            {!category.is_active && <InactiveBadge />}
           </div>
           <p className="text-gray-500 mt-1">
             {lineItems.length} expense line item
@@ -64,6 +67,11 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
         </div>
         {!category.is_system && (
           <div className="flex gap-2">
+            <ToggleActiveButton
+              entityType="expense-category"
+              entityId={category.id}
+              isActive={category.is_active}
+            />
             <Button variant="outline" asChild>
               <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
             </Button>

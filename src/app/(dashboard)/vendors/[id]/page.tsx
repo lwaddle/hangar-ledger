@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getVendor, getExpensesByVendor, getVendors } from "@/lib/actions/vendors";
 import { Button } from "@/components/ui/button";
 import { DeleteVendorButton } from "@/components/delete-vendor-button";
+import { ToggleActiveButton } from "@/components/toggle-active-button";
+import { InactiveBadge } from "@/components/inactive-badge";
 import {
   Table,
   TableBody,
@@ -42,12 +44,20 @@ export default async function VendorDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{vendor.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{vendor.name}</h1>
+            {!vendor.is_active && <InactiveBadge />}
+          </div>
           <p className="text-gray-500 mt-1">
             {expenses.length} expense{expenses.length !== 1 && "s"}
           </p>
         </div>
         <div className="flex gap-2">
+          <ToggleActiveButton
+            entityType="vendor"
+            entityId={vendor.id}
+            isActive={vendor.is_active}
+          />
           <Button variant="outline" asChild>
             <Link href={`/vendors/${vendor.id}/edit`}>Edit</Link>
           </Button>

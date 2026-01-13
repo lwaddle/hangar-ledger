@@ -23,6 +23,19 @@ export async function getPaymentMethods(): Promise<PaymentMethod[]> {
   return data ?? [];
 }
 
+export async function getActivePaymentMethods(): Promise<PaymentMethod[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("payment_methods")
+    .select("*")
+    .is("deleted_at", null)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getPaymentMethod(id: string): Promise<PaymentMethod | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -191,4 +204,20 @@ export async function reassignExpensesAndDeletePaymentMethod(
   revalidatePath("/expenses");
   revalidatePath(`/payment-methods/${targetPaymentMethodId}`);
   redirect("/payment-methods");
+}
+
+export async function togglePaymentMethodActive(
+  id: string,
+  isActive: boolean
+): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("payment_methods")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/payment-methods");
+  revalidatePath(`/payment-methods/${id}`);
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getExpense, deleteExpense } from "@/lib/actions/expenses";
+import { getExpense } from "@/lib/actions/expenses";
 import { Button } from "@/components/ui/button";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
+import { InactiveBadge } from "@/components/inactive-badge";
 import {
   Table,
   TableBody,
@@ -36,7 +37,10 @@ export default async function ExpenseDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{expense.vendor}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{expense.vendor}</h1>
+            {expense.vendors && !expense.vendors.is_active && <InactiveBadge />}
+          </div>
           <p className="text-gray-500 mt-1">
             {new Date(expense.date).toLocaleDateString()} &middot;{" "}
             {expense.category}
@@ -87,7 +91,14 @@ export default async function ExpenseDetailPage({ params }: Props) {
               <TableBody>
                 {expense.expense_line_items.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>{item.category}</TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-2">
+                        {item.category}
+                        {item.expense_categories && !item.expense_categories.is_active && (
+                          <InactiveBadge />
+                        )}
+                      </span>
+                    </TableCell>
                     <TableCell>{item.description || ""}</TableCell>
                     <TableCell className="text-right font-mono">
                       {formatCurrency(item.amount)}
@@ -110,7 +121,10 @@ export default async function ExpenseDetailPage({ params }: Props) {
         {expense.payment_methods && (
           <div>
             <p className="text-sm text-gray-500">Payment Method</p>
-            <p>{expense.payment_methods.name}</p>
+            <p className="flex items-center gap-2">
+              {expense.payment_methods.name}
+              {!expense.payment_methods.is_active && <InactiveBadge />}
+            </p>
           </div>
         )}
 

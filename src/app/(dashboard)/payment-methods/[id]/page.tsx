@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getPaymentMethod, getExpensesByPaymentMethod, getPaymentMethods } from "@/lib/actions/payment-methods";
 import { Button } from "@/components/ui/button";
 import { DeletePaymentMethodButton } from "@/components/delete-payment-method-button";
+import { ToggleActiveButton } from "@/components/toggle-active-button";
+import { InactiveBadge } from "@/components/inactive-badge";
 import {
   Table,
   TableBody,
@@ -41,12 +43,20 @@ export default async function PaymentMethodDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{paymentMethod.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{paymentMethod.name}</h1>
+            {!paymentMethod.is_active && <InactiveBadge />}
+          </div>
           <p className="text-gray-500 mt-1">
             {expenses.length} expense{expenses.length !== 1 && "s"}
           </p>
         </div>
         <div className="flex gap-2">
+          <ToggleActiveButton
+            entityType="payment-method"
+            entityId={paymentMethod.id}
+            isActive={paymentMethod.is_active}
+          />
           <Button variant="outline" asChild>
             <Link href={`/payment-methods/${paymentMethod.id}/edit`}>Edit</Link>
           </Button>

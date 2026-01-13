@@ -22,6 +22,19 @@ export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   return data ?? [];
 }
 
+export async function getActiveExpenseCategories(): Promise<ExpenseCategory[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("expense_categories")
+    .select("*")
+    .is("deleted_at", null)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 
 export async function getExpenseCategory(
   id: string
@@ -262,4 +275,31 @@ export async function reassignLineItemsAndDeleteExpenseCategory(
   revalidatePath("/expenses");
   revalidatePath(`/expense-categories/${targetCategoryId}`);
   redirect("/expense-categories");
+}
+
+export async function toggleExpenseCategoryActive(
+  id: string,
+  isActive: boolean
+): Promise<void> {
+  const supabase = await createClient();
+
+  // Check if this is a system category
+  const { data: category } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", id)
+    .single();
+
+  if (category?.is_system) {
+    throw new Error("System categories cannot be deactivated");
+  }
+
+  const { error } = await supabase
+    .from("expense_categories")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/expense-categories");
+  revalidatePath(`/expense-categories/${id}`);
 }
