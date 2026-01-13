@@ -124,18 +124,11 @@ export function DeleteVendorButton({ vendorId, vendorName, expenseCount, vendors
             <>
               <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
               <Button
-                variant="outline"
+                variant="destructive"
                 onClick={() => setShowReassign(true)}
                 disabled={loading}
               >
-                Reassign Expenses
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-              >
-                {loading ? "Deleting..." : "Delete Anyway"}
+                Reassign & Delete
               </Button>
             </>
           ) : (
