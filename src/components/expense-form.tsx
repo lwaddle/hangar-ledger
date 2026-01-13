@@ -17,10 +17,13 @@ import {
   type PaymentMethod,
   type ExpenseLineItem,
   type ExpenseCategory,
+  type Receipt,
 } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
+import { ReceiptDropzone } from "@/components/receipt-dropzone";
+import { ReceiptList } from "@/components/receipt-list";
 import { Plus } from "lucide-react";
 
 type LineItemState = {
@@ -29,7 +32,11 @@ type LineItemState = {
   category: string;
   categoryId: string;
   amount: string;
+  quantity: string;
+  quantityUnit: "gallons" | "liters";
 };
+
+const LITERS_PER_GALLON = 3.78541;
 
 type Props = {
   expense?: ExpenseWithTrip;
@@ -38,6 +45,7 @@ type Props = {
   paymentMethods: PaymentMethod[];
   categories: ExpenseCategory[];
   defaultTripId?: string;
+  initialReceipts?: Receipt[];
 };
 
 const emptyLineItem = (): LineItemState => ({
@@ -45,9 +53,11 @@ const emptyLineItem = (): LineItemState => ({
   category: "",
   categoryId: "",
   amount: "",
+  quantity: "",
+  quantityUnit: "gallons",
 });
 
-export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId }: Props) {
+export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId, initialReceipts }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +66,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
   const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
+  const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts ?? []);
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -65,6 +76,8 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
         category: item.category,
         categoryId: item.category_id ?? "",
         amount: item.amount.toString(),
+        quantity: item.quantity_gallons?.toString() ?? "",
+        quantityUnit: "gallons" as const,
       }));
     }
     return [emptyLineItem()];
@@ -93,6 +106,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     });
   };
 
+  const updateLineItemQuantityUnit = (index: number, quantityUnit: "gallons" | "liters") => {
+    setLineItems((items) => {
+      const newItems = [...items];
+      newItems[index] = { ...newItems[index], quantityUnit };
+      return newItems;
+    });
+  };
+
   const addLineItem = () => {
     setLineItems((items) => [...items, emptyLineItem()]);
   };
@@ -101,14 +122,27 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     setLineItems((items) => items.filter((_, i) => i !== index));
   };
 
+  const handleReceiptUpload = (receipt: Receipt) => {
+    setReceipts((prev) => [...prev, receipt]);
+  };
+
+  const handleReceiptDelete = (receiptId: string) => {
+    setReceipts((prev) => prev.filter((r) => r.id !== receiptId));
+  };
+
   const isValid = useMemo(() => {
     if (!vendorName) return false;
     if (lineItems.length === 0) return false;
     return lineItems.every((item) => {
       if (!item.categoryId || parseFloat(item.amount) <= 0) return false;
+      // Require quantity for fuel categories
+      const category = categories.find((c) => c.id === item.categoryId);
+      if (category?.is_fuel_category && (!item.quantity || parseFloat(item.quantity) <= 0)) {
+        return false;
+      }
       return true;
     });
-  }, [vendorName, lineItems]);
+  }, [vendorName, lineItems, categories]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -125,14 +159,26 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
       vendor: vendorName,
       payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
-      line_items: lineItems.map((item, index) => ({
-        id: item.id,
-        category_id: item.categoryId || null,
-        description: item.description || null,
-        category: item.category,
-        amount: parseFloat(item.amount) || 0,
-        sort_order: index,
-      })),
+      line_items: lineItems.map((item, index) => {
+        // Convert quantity to gallons if needed
+        const category = categories.find((c) => c.id === item.categoryId);
+        let quantity_gallons: number | null = null;
+        if (category?.is_fuel_category && item.quantity) {
+          const qty = parseFloat(item.quantity);
+          if (qty > 0) {
+            quantity_gallons = item.quantityUnit === "liters" ? qty / LITERS_PER_GALLON : qty;
+          }
+        }
+        return {
+          id: item.id,
+          category_id: item.categoryId || null,
+          description: item.description || null,
+          category: item.category,
+          amount: parseFloat(item.amount) || 0,
+          quantity_gallons,
+          sort_order: index,
+        };
+      }),
     };
 
     try {
@@ -214,10 +260,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
               description={item.description}
               categoryId={item.categoryId}
               amount={item.amount}
+              quantity={item.quantity}
+              quantityUnit={item.quantityUnit}
               categories={categories}
               onDescriptionChange={(v) => updateLineItem(index, "description", v)}
               onCategoryChange={(id, name) => updateLineItemCategory(index, id, name)}
               onAmountChange={(v) => updateLineItem(index, "amount", v)}
+              onQuantityChange={(v) => updateLineItem(index, "quantity", v)}
+              onQuantityUnitChange={(v) => updateLineItemQuantityUnit(index, v)}
               onRemove={() => removeLineItem(index)}
               canRemove={lineItems.length > 1}
               disabled={loading}
@@ -257,6 +307,23 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
           rows={3}
         />
       </div>
+
+      {expense && (
+        <div className="space-y-3">
+          <Label>Receipts</Label>
+          <ReceiptList
+            receipts={receipts}
+            expenseId={expense.id}
+            editable
+            onDelete={handleReceiptDelete}
+          />
+          <ReceiptDropzone
+            expenseId={expense.id}
+            onUploadComplete={handleReceiptUpload}
+            disabled={loading}
+          />
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

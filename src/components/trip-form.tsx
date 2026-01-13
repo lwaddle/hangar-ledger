@@ -6,20 +6,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AircraftCombobox } from "@/components/aircraft-combobox";
 import { createTrip, updateTrip, type TripFormData } from "@/lib/actions/trips";
-import type { Trip } from "@/types/database";
+import type { Trip, Aircraft } from "@/types/database";
 
 type Props = {
   trip?: Trip;
+  aircraft: Aircraft[];
 };
 
-export function TripForm({ trip }: Props) {
+export function TripForm({ trip, aircraft }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [aircraftId, setAircraftId] = useState(trip?.aircraft_id ?? "");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!aircraftId) {
+      setError("Please select an aircraft");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -28,6 +37,7 @@ export function TripForm({ trip }: Props) {
       name: formData.get("name") as string,
       start_date: formData.get("start_date") as string,
       end_date: (formData.get("end_date") as string) || undefined,
+      aircraft_id: aircraftId,
       notes: (formData.get("notes") as string) || undefined,
     };
 
@@ -57,6 +67,17 @@ export function TripForm({ trip }: Props) {
           defaultValue={trip?.name}
           placeholder="e.g., KLAS to KJFK"
           required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Aircraft *</Label>
+        <AircraftCombobox
+          aircraft={aircraft}
+          value={aircraftId}
+          onValueChange={(id) => setAircraftId(id)}
+          includeInactiveId={trip?.aircraft_id}
+          disabled={loading}
         />
       </div>
 

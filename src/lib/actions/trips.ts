@@ -9,6 +9,7 @@ export type TripFormData = {
   name: string;
   start_date: string;
   end_date?: string;
+  aircraft_id: string;
   notes?: string;
 };
 
@@ -65,12 +66,24 @@ export async function getTrip(id: string): Promise<Trip | null> {
 
 export async function createTrip(formData: TripFormData): Promise<void> {
   const supabase = await createClient();
+
+  // Get aircraft tail_number for denormalization
+  const { data: aircraft, error: aircraftError } = await supabase
+    .from("aircraft")
+    .select("tail_number")
+    .eq("id", formData.aircraft_id)
+    .single();
+
+  if (aircraftError) throw aircraftError;
+
   const { data, error } = await supabase
     .from("trips")
     .insert({
       name: formData.name,
       start_date: formData.start_date,
       end_date: formData.end_date || null,
+      aircraft_id: formData.aircraft_id,
+      aircraft: aircraft.tail_number,
       notes: formData.notes || null,
     })
     .select("id")
@@ -87,12 +100,24 @@ export async function updateTrip(
   formData: TripFormData
 ): Promise<void> {
   const supabase = await createClient();
+
+  // Get aircraft tail_number for denormalization
+  const { data: aircraft, error: aircraftError } = await supabase
+    .from("aircraft")
+    .select("tail_number")
+    .eq("id", formData.aircraft_id)
+    .single();
+
+  if (aircraftError) throw aircraftError;
+
   const { error } = await supabase
     .from("trips")
     .update({
       name: formData.name,
       start_date: formData.start_date,
       end_date: formData.end_date || null,
+      aircraft_id: formData.aircraft_id,
+      aircraft: aircraft.tail_number,
       notes: formData.notes || null,
     })
     .eq("id", id);

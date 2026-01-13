@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { toggleExpenseCategoryActive } from "@/lib/actions/expense-categories";
 import { toggleVendorActive } from "@/lib/actions/vendors";
 import { togglePaymentMethodActive } from "@/lib/actions/payment-methods";
+import { toggleAircraftActive } from "@/lib/actions/aircraft";
 
-type EntityType = "expense-category" | "vendor" | "payment-method";
+type EntityType = "expense-category" | "vendor" | "payment-method" | "aircraft";
 
 type ToggleActiveButtonProps = {
   entityType: EntityType;
@@ -33,6 +34,9 @@ export function ToggleActiveButton({
           break;
         case "payment-method":
           await togglePaymentMethodActive(entityId, !isActive);
+          break;
+        case "aircraft":
+          await toggleAircraftActive(entityId, !isActive);
           break;
       }
     } catch (error) {

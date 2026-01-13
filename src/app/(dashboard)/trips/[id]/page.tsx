@@ -43,6 +43,7 @@ export default async function TripDetailPage({ params }: Props) {
         <div>
           <h1 className="text-2xl font-bold">{trip.name}</h1>
           <p className="text-gray-500 mt-1">
+            {trip.aircraft} &bull;{" "}
             {new Date(trip.start_date).toLocaleDateString()}
             {trip.end_date &&
               ` - ${new Date(trip.end_date).toLocaleDateString()}`}

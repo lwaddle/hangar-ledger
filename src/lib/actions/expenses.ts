@@ -148,6 +148,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
     description: item.description || null,
     category: item.category,
     amount: item.amount,
+    quantity_gallons: item.quantity_gallons,
     sort_order: index,
   }));
 
@@ -208,6 +209,7 @@ export async function updateExpense(
     description: item.description || null,
     category: item.category,
     amount: item.amount,
+    quantity_gallons: item.quantity_gallons,
     sort_order: index,
   }));
 

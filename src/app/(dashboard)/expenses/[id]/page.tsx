@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
+import { getReceiptsByExpense } from "@/lib/actions/receipts";
 import { Button } from "@/components/ui/button";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { ReceiptList } from "@/components/receipt-list";
 import {
   Table,
   TableBody,
@@ -27,7 +29,10 @@ type Props = {
 
 export default async function ExpenseDetailPage({ params }: Props) {
   const { id } = await params;
-  const expense = await getExpense(id);
+  const [expense, receipts] = await Promise.all([
+    getExpense(id),
+    getReceiptsByExpense(id),
+  ]);
 
   if (!expense) {
     notFound();
@@ -77,46 +82,68 @@ export default async function ExpenseDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {expense.expense_line_items && expense.expense_line_items.length > 0 && (
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Line Items</p>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expense.expense_line_items.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <span className="flex items-center gap-2">
-                        {item.category}
-                        {item.expense_categories && !item.expense_categories.is_active && (
-                          <InactiveBadge />
-                        )}
-                      </span>
-                    </TableCell>
-                    <TableCell>{item.description || ""}</TableCell>
-                    <TableCell className="text-right font-mono">
-                      {formatCurrency(item.amount)}
+        {expense.expense_line_items && expense.expense_line_items.length > 0 && (() => {
+          const hasFuelItems = expense.expense_line_items.some(
+            (item) => item.quantity_gallons != null
+          );
+          const totalFuel = expense.expense_line_items.reduce(
+            (sum, item) => sum + (item.quantity_gallons ?? 0),
+            0
+          );
+          return (
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Line Items</p>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Description</TableHead>
+                    {hasFuelItems && <TableHead className="text-right">Fuel (gal)</TableHead>}
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {expense.expense_line_items.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell>
+                        <span className="flex items-center gap-2">
+                          {item.category}
+                          {item.expense_categories && !item.expense_categories.is_active && (
+                            <InactiveBadge />
+                          )}
+                        </span>
+                      </TableCell>
+                      <TableCell>{item.description || ""}</TableCell>
+                      {hasFuelItems && (
+                        <TableCell className="text-right font-mono">
+                          {item.quantity_gallons != null
+                            ? item.quantity_gallons.toFixed(2)
+                            : ""}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-right font-mono">
+                        {formatCurrency(item.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableCell colSpan={2} className="font-medium">Total</TableCell>
+                    {hasFuelItems && (
+                      <TableCell className="text-right font-mono font-medium">
+                        {totalFuel.toFixed(2)}
+                      </TableCell>
+                    )}
+                    <TableCell className="text-right font-mono font-medium">
+                      {formatCurrency(expense.amount)}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-              <TableFooter>
-                <TableRow>
-                  <TableCell colSpan={2} className="font-medium">Total</TableCell>
-                  <TableCell className="text-right font-mono font-medium">
-                    {formatCurrency(expense.amount)}
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </div>
-        )}
+                </TableFooter>
+              </Table>
+            </div>
+          );
+        })()}
 
         {expense.payment_methods && (
           <div>
@@ -134,6 +161,11 @@ export default async function ExpenseDetailPage({ params }: Props) {
             <p className="whitespace-pre-wrap">{expense.notes}</p>
           </div>
         )}
+
+        <div>
+          <p className="text-sm text-gray-500 mb-2">Receipts</p>
+          <ReceiptList receipts={receipts} expenseId={expense.id} />
+        </div>
       </div>
     </div>
   );

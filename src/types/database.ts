@@ -6,7 +6,20 @@ export type Trip = {
   name: string;
   start_date: string;
   end_date: string | null;
+  aircraft_id: string;
+  aircraft: string;
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type Aircraft = {
+  id: string;
+  tail_number: string;
+  name: string | null;
+  notes: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -37,6 +50,7 @@ export type ExpenseCategory = {
   name: string;
   is_system: boolean;
   is_active: boolean;
+  is_fuel_category: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -76,6 +90,7 @@ export type ExpenseLineItem = {
   description: string | null;
   category: string;
   amount: number;
+  quantity_gallons: number | null;
   sort_order: number;
   created_at: string;
   updated_at: string;
@@ -87,6 +102,7 @@ export type ExpenseLineItemInput = {
   description: string | null;
   category: string;
   amount: number;
+  quantity_gallons: number | null;
   sort_order: number;
 };
 
