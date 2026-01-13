@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getExpenseCategory } from "@/lib/actions/expense-categories";
 import { ExpenseCategoryForm } from "@/components/expense-category-form";
 
@@ -12,6 +12,11 @@ export default async function EditExpenseCategoryPage({ params }: Props) {
 
   if (!category) {
     notFound();
+  }
+
+  // System categories cannot be edited
+  if (category.is_system) {
+    redirect(`/expense-categories/${id}`);
   }
 
   return (

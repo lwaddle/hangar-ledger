@@ -62,7 +62,14 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{category.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{category.name}</h1>
+            {category.is_system && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                Built-in
+              </span>
+            )}
+          </div>
           <p className="text-gray-500 mt-1">
             {getCategoryType(
               category.is_flight_expense,
@@ -72,17 +79,19 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
             {lineItems.length !== 1 && "s"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteExpenseCategoryButton
-            categoryId={category.id}
-            categoryName={category.name}
-            lineItemCount={lineItems.length}
-            categories={allCategories}
-          />
-        </div>
+        {!category.is_system && (
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
+            </Button>
+            <DeleteExpenseCategoryButton
+              categoryId={category.id}
+              categoryName={category.name}
+              lineItemCount={lineItems.length}
+              categories={allCategories}
+            />
+          </div>
+        )}
       </div>
 
       {category.notes && (

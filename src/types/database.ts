@@ -35,6 +35,7 @@ export type ExpenseCategory = {
   name: string;
   is_flight_expense: boolean;
   is_general_expense: boolean;
+  is_system: boolean;
   notes: string | null;
   created_at: string;
   updated_at: string;

@@ -60,7 +60,16 @@ export default async function ExpenseCategoriesPage() {
                   key={category.id}
                   href={`/expense-categories/${category.id}`}
                 >
-                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-2">
+                      {category.name}
+                      {category.is_system && (
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                          Built-in
+                        </span>
+                      )}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-gray-500">
                     {getCategoryType(
                       category.is_flight_expense,

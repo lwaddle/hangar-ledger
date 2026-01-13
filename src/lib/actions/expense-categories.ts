@@ -131,12 +131,17 @@ export async function updateExpenseCategory(
 ): Promise<void> {
   const supabase = await createClient();
 
-  // Get the old category name to update denormalized fields
+  // Get the old category to check if it's a system category
   const { data: oldCategory } = await supabase
     .from("expense_categories")
-    .select("name")
+    .select("name, is_system")
     .eq("id", id)
     .single();
+
+  // Prevent modification of system categories
+  if (oldCategory?.is_system) {
+    throw new Error("System categories cannot be modified");
+  }
 
   const { error } = await supabase
     .from("expense_categories")
@@ -171,6 +176,18 @@ export async function updateExpenseCategory(
 
 export async function deleteExpenseCategory(id: string): Promise<void> {
   const supabase = await createClient();
+
+  // Check if this is a system category
+  const { data: category } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", id)
+    .single();
+
+  if (category?.is_system) {
+    throw new Error("System categories cannot be deleted");
+  }
+
   const { error } = await supabase
     .from("expense_categories")
     .update({ deleted_at: new Date().toISOString() })
@@ -223,6 +240,17 @@ export async function reassignLineItemsAndDeleteExpenseCategory(
   targetCategoryId: string
 ): Promise<void> {
   const supabase = await createClient();
+
+  // Check if source category is a system category
+  const { data: sourceCategory } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", sourceCategoryId)
+    .single();
+
+  if (sourceCategory?.is_system) {
+    throw new Error("System categories cannot be deleted");
+  }
 
   // Get target category name
   const { data: targetCategory, error: categoryError } = await supabase
