@@ -7,8 +7,6 @@ import type { ExpenseCategory } from "@/types/database";
 
 export type ExpenseCategoryFormData = {
   name: string;
-  is_flight_expense: boolean;
-  is_general_expense: boolean;
   notes?: string;
 };
 
@@ -24,31 +22,6 @@ export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   return data ?? [];
 }
 
-export async function getFlightExpenseCategories(): Promise<ExpenseCategory[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("expense_categories")
-    .select("*")
-    .is("deleted_at", null)
-    .eq("is_flight_expense", true)
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function getGeneralExpenseCategories(): Promise<ExpenseCategory[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("expense_categories")
-    .select("*")
-    .is("deleted_at", null)
-    .eq("is_general_expense", true)
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return data ?? [];
-}
 
 export async function getExpenseCategory(
   id: string
@@ -87,8 +60,6 @@ export async function createExpenseCategory(
       .from("expense_categories")
       .update({
         deleted_at: null,
-        is_flight_expense: formData.is_flight_expense,
-        is_general_expense: formData.is_general_expense,
         notes: formData.notes || deletedCategory.notes,
         updated_at: new Date().toISOString(),
       })
@@ -106,8 +77,6 @@ export async function createExpenseCategory(
     .from("expense_categories")
     .insert({
       name: formData.name,
-      is_flight_expense: formData.is_flight_expense,
-      is_general_expense: formData.is_general_expense,
       notes: formData.notes || null,
     })
     .select()
@@ -147,8 +116,6 @@ export async function updateExpenseCategory(
     .from("expense_categories")
     .update({
       name: formData.name,
-      is_flight_expense: formData.is_flight_expense,
-      is_general_expense: formData.is_general_expense,
       notes: formData.notes || null,
     })
     .eq("id", id);

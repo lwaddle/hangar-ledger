@@ -33,8 +33,6 @@ export type PaymentMethod = {
 export type ExpenseCategory = {
   id: string;
   name: string;
-  is_flight_expense: boolean;
-  is_general_expense: boolean;
   is_system: boolean;
   notes: string | null;
   created_at: string;

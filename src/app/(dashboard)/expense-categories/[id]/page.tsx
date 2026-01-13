@@ -24,19 +24,6 @@ function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
-function getCategoryType(
-  isFlightExpense: boolean,
-  isGeneralExpense: boolean
-): string {
-  if (isFlightExpense && isGeneralExpense) {
-    return "General & Flight";
-  }
-  if (isFlightExpense) {
-    return "Flight";
-  }
-  return "General";
-}
-
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -71,11 +58,7 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
             )}
           </div>
           <p className="text-gray-500 mt-1">
-            {getCategoryType(
-              category.is_flight_expense,
-              category.is_general_expense
-            )}{" "}
-            &middot; {lineItems.length} expense line item
+            {lineItems.length} expense line item
             {lineItems.length !== 1 && "s"}
           </p>
         </div>

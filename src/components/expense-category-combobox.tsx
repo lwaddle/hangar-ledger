@@ -43,8 +43,6 @@ export function ExpenseCategoryCombobox({
       try {
         const newCategory = await createExpenseCategory({
           name,
-          is_flight_expense: true,
-          is_general_expense: true,
         });
         setLocalCategories((prev) =>
           [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name))

@@ -11,19 +11,6 @@ import {
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
 
-function getCategoryType(
-  isFlightExpense: boolean,
-  isGeneralExpense: boolean
-): string {
-  if (isFlightExpense && isGeneralExpense) {
-    return "General & Flight";
-  }
-  if (isFlightExpense) {
-    return "Flight";
-  }
-  return "General";
-}
-
 export default async function ExpenseCategoriesPage() {
   const categories = await getExpenseCategories();
 
@@ -51,7 +38,6 @@ export default async function ExpenseCategoriesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -69,12 +55,6 @@ export default async function ExpenseCategoriesPage() {
                         </span>
                       )}
                     </span>
-                  </TableCell>
-                  <TableCell className="text-gray-500">
-                    {getCategoryType(
-                      category.is_flight_expense,
-                      category.is_general_expense
-                    )}
                   </TableCell>
                 </ClickableTableRow>
               ))}
