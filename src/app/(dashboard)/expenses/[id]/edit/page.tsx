@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
+import { getReceiptsByExpense } from "@/lib/actions/receipts";
 import { getVendors } from "@/lib/actions/vendors";
 import { getPaymentMethods } from "@/lib/actions/payment-methods";
 import { getExpenseCategories } from "@/lib/actions/expense-categories";
@@ -17,10 +18,11 @@ export default async function EditExpensePage({ params }: Props) {
     notFound();
   }
 
-  const [vendors, paymentMethods, categories] = await Promise.all([
+  const [vendors, paymentMethods, categories, receipts] = await Promise.all([
     getVendors(),
     getPaymentMethods(),
     getExpenseCategories(),
+    getReceiptsByExpense(id),
   ]);
 
   return (
@@ -31,6 +33,7 @@ export default async function EditExpensePage({ params }: Props) {
         vendors={vendors}
         paymentMethods={paymentMethods}
         categories={categories}
+        initialReceipts={receipts}
       />
     </div>
   );

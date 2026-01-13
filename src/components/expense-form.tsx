@@ -17,10 +17,13 @@ import {
   type PaymentMethod,
   type ExpenseLineItem,
   type ExpenseCategory,
+  type Receipt,
 } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
+import { ReceiptDropzone } from "@/components/receipt-dropzone";
+import { ReceiptList } from "@/components/receipt-list";
 import { Plus } from "lucide-react";
 
 type LineItemState = {
@@ -42,6 +45,7 @@ type Props = {
   paymentMethods: PaymentMethod[];
   categories: ExpenseCategory[];
   defaultTripId?: string;
+  initialReceipts?: Receipt[];
 };
 
 const emptyLineItem = (): LineItemState => ({
@@ -53,7 +57,7 @@ const emptyLineItem = (): LineItemState => ({
   quantityUnit: "gallons",
 });
 
-export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId }: Props) {
+export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId, initialReceipts }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +66,7 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
   const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
+  const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts ?? []);
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -115,6 +120,14 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
 
   const removeLineItem = (index: number) => {
     setLineItems((items) => items.filter((_, i) => i !== index));
+  };
+
+  const handleReceiptUpload = (receipt: Receipt) => {
+    setReceipts((prev) => [...prev, receipt]);
+  };
+
+  const handleReceiptDelete = (receiptId: string) => {
+    setReceipts((prev) => prev.filter((r) => r.id !== receiptId));
   };
 
   const isValid = useMemo(() => {
@@ -294,6 +307,23 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
           rows={3}
         />
       </div>
+
+      {expense && (
+        <div className="space-y-3">
+          <Label>Receipts</Label>
+          <ReceiptList
+            receipts={receipts}
+            expenseId={expense.id}
+            editable
+            onDelete={handleReceiptDelete}
+          />
+          <ReceiptDropzone
+            expenseId={expense.id}
+            onUploadComplete={handleReceiptUpload}
+            disabled={loading}
+          />
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

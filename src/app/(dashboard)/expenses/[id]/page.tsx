@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
+import { getReceiptsByExpense } from "@/lib/actions/receipts";
 import { Button } from "@/components/ui/button";
 import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { ReceiptList } from "@/components/receipt-list";
 import {
   Table,
   TableBody,
@@ -27,7 +29,10 @@ type Props = {
 
 export default async function ExpenseDetailPage({ params }: Props) {
   const { id } = await params;
-  const expense = await getExpense(id);
+  const [expense, receipts] = await Promise.all([
+    getExpense(id),
+    getReceiptsByExpense(id),
+  ]);
 
   if (!expense) {
     notFound();
@@ -156,6 +161,11 @@ export default async function ExpenseDetailPage({ params }: Props) {
             <p className="whitespace-pre-wrap">{expense.notes}</p>
           </div>
         )}
+
+        <div>
+          <p className="text-sm text-gray-500 mb-2">Receipts</p>
+          <ReceiptList receipts={receipts} expenseId={expense.id} />
+        </div>
       </div>
     </div>
   );
