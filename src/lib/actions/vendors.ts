@@ -22,6 +22,19 @@ export async function getVendors(): Promise<Vendor[]> {
   return data ?? [];
 }
 
+export async function getActiveVendors(): Promise<Vendor[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("vendors")
+    .select("*")
+    .is("deleted_at", null)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getVendor(id: string): Promise<Vendor | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -184,4 +197,20 @@ export async function reassignExpensesAndDeleteVendor(
   revalidatePath("/expenses");
   revalidatePath(`/vendors/${targetVendorId}`);
   redirect("/vendors");
+}
+
+export async function toggleVendorActive(
+  id: string,
+  isActive: boolean
+): Promise<void> {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("vendors")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/vendors");
+  revalidatePath(`/vendors/${id}`);
 }

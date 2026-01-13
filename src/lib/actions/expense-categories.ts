@@ -7,9 +7,6 @@ import type { ExpenseCategory } from "@/types/database";
 
 export type ExpenseCategoryFormData = {
   name: string;
-  is_flight_expense: boolean;
-  is_general_expense: boolean;
-  is_fuel_category: boolean;
   notes?: string;
 };
 
@@ -25,31 +22,19 @@ export async function getExpenseCategories(): Promise<ExpenseCategory[]> {
   return data ?? [];
 }
 
-export async function getFlightExpenseCategories(): Promise<ExpenseCategory[]> {
+export async function getActiveExpenseCategories(): Promise<ExpenseCategory[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expense_categories")
     .select("*")
     .is("deleted_at", null)
-    .eq("is_flight_expense", true)
+    .eq("is_active", true)
     .order("name", { ascending: true });
 
   if (error) throw error;
   return data ?? [];
 }
 
-export async function getGeneralExpenseCategories(): Promise<ExpenseCategory[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("expense_categories")
-    .select("*")
-    .is("deleted_at", null)
-    .eq("is_general_expense", true)
-    .order("name", { ascending: true });
-
-  if (error) throw error;
-  return data ?? [];
-}
 
 export async function getExpenseCategory(
   id: string
@@ -88,9 +73,6 @@ export async function createExpenseCategory(
       .from("expense_categories")
       .update({
         deleted_at: null,
-        is_flight_expense: formData.is_flight_expense,
-        is_general_expense: formData.is_general_expense,
-        is_fuel_category: formData.is_fuel_category,
         notes: formData.notes || deletedCategory.notes,
         updated_at: new Date().toISOString(),
       })
@@ -108,9 +90,6 @@ export async function createExpenseCategory(
     .from("expense_categories")
     .insert({
       name: formData.name,
-      is_flight_expense: formData.is_flight_expense,
-      is_general_expense: formData.is_general_expense,
-      is_fuel_category: formData.is_fuel_category,
       notes: formData.notes || null,
     })
     .select()
@@ -134,20 +113,22 @@ export async function updateExpenseCategory(
 ): Promise<void> {
   const supabase = await createClient();
 
-  // Get the old category name to update denormalized fields
+  // Get the old category to check if it's a system category
   const { data: oldCategory } = await supabase
     .from("expense_categories")
-    .select("name")
+    .select("name, is_system")
     .eq("id", id)
     .single();
+
+  // Prevent modification of system categories
+  if (oldCategory?.is_system) {
+    throw new Error("System categories cannot be modified");
+  }
 
   const { error } = await supabase
     .from("expense_categories")
     .update({
       name: formData.name,
-      is_flight_expense: formData.is_flight_expense,
-      is_general_expense: formData.is_general_expense,
-      is_fuel_category: formData.is_fuel_category,
       notes: formData.notes || null,
     })
     .eq("id", id);
@@ -175,6 +156,18 @@ export async function updateExpenseCategory(
 
 export async function deleteExpenseCategory(id: string): Promise<void> {
   const supabase = await createClient();
+
+  // Check if this is a system category
+  const { data: category } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", id)
+    .single();
+
+  if (category?.is_system) {
+    throw new Error("System categories cannot be deleted");
+  }
+
   const { error } = await supabase
     .from("expense_categories")
     .update({ deleted_at: new Date().toISOString() })
@@ -228,6 +221,17 @@ export async function reassignLineItemsAndDeleteExpenseCategory(
 ): Promise<void> {
   const supabase = await createClient();
 
+  // Check if source category is a system category
+  const { data: sourceCategory } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", sourceCategoryId)
+    .single();
+
+  if (sourceCategory?.is_system) {
+    throw new Error("System categories cannot be deleted");
+  }
+
   // Get target category name
   const { data: targetCategory, error: categoryError } = await supabase
     .from("expense_categories")
@@ -271,4 +275,31 @@ export async function reassignLineItemsAndDeleteExpenseCategory(
   revalidatePath("/expenses");
   revalidatePath(`/expense-categories/${targetCategoryId}`);
   redirect("/expense-categories");
+}
+
+export async function toggleExpenseCategoryActive(
+  id: string,
+  isActive: boolean
+): Promise<void> {
+  const supabase = await createClient();
+
+  // Check if this is a system category
+  const { data: category } = await supabase
+    .from("expense_categories")
+    .select("is_system")
+    .eq("id", id)
+    .single();
+
+  if (category?.is_system) {
+    throw new Error("System categories cannot be deactivated");
+  }
+
+  const { error } = await supabase
+    .from("expense_categories")
+    .update({ is_active: isActive })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/expense-categories");
+  revalidatePath(`/expense-categories/${id}`);
 }

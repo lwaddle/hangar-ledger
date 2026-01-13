@@ -5,7 +5,7 @@ export default function ReportsPage() {
       <div className="bg-white rounded-lg border p-6 text-center">
         <p className="text-gray-500">Reports coming soon.</p>
         <p className="text-gray-400 text-sm mt-2">
-          View expense summaries, trip costs, and fuel usage.
+          View expense summaries and trip costs.
         </p>
       </div>
     </div>

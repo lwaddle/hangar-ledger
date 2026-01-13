@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
+import { InactiveBadge } from "@/components/inactive-badge";
 
 export default async function VendorsPage() {
   const vendors = await getVendors();
@@ -42,7 +43,12 @@ export default async function VendorsPage() {
             <TableBody>
               {vendors.map((vendor) => (
                 <ClickableTableRow key={vendor.id} href={`/vendors/${vendor.id}`}>
-                  <TableCell className="font-medium">{vendor.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-2">
+                      {vendor.name}
+                      {!vendor.is_active && <InactiveBadge />}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-gray-500">
                     {vendor.notes ? (
                       <span className="line-clamp-1">{vendor.notes}</span>

@@ -11,6 +11,7 @@ type Props = {
   onValueChange: (categoryId: string, categoryName: string) => void;
   disabled?: boolean;
   allowCreate?: boolean;
+  includeInactiveId?: string;
 };
 
 export function ExpenseCategoryCombobox({
@@ -19,15 +20,18 @@ export function ExpenseCategoryCombobox({
   onValueChange,
   disabled,
   allowCreate = false,
+  includeInactiveId,
 }: Props) {
   const [isPending, startTransition] = useTransition();
   const [localCategories, setLocalCategories] =
     useState<ExpenseCategory[]>(categories);
 
-  const options: ComboboxOption[] = localCategories.map((c) => ({
-    value: c.id,
-    label: c.name,
-  }));
+  const options: ComboboxOption[] = localCategories
+    .filter((c) => c.is_active || c.id === includeInactiveId)
+    .map((c) => ({
+      value: c.id,
+      label: c.is_active ? c.name : `${c.name} (inactive)`,
+    }));
 
   function handleValueChange(categoryId: string) {
     const category = localCategories.find((c) => c.id === categoryId);
@@ -43,9 +47,6 @@ export function ExpenseCategoryCombobox({
       try {
         const newCategory = await createExpenseCategory({
           name,
-          is_flight_expense: true,
-          is_general_expense: true,
-          is_fuel_category: false,
         });
         setLocalCategories((prev) =>
           [...prev, newCategory].sort((a, b) => a.name.localeCompare(b.name))

@@ -26,11 +26,6 @@ export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
   const isItemized = expense.expense_line_items.length > 1;
   const displayCategory = isItemized ? "Itemized" : expense.category;
 
-  // Sum up all fuel gallons from line items where category still has fuel tracking enabled
-  const totalFuelGallons = expense.expense_line_items
-    .filter((item) => item.quantity_gallons && item.expense_categories?.is_fuel_category)
-    .reduce((sum, item) => sum + (item.quantity_gallons || 0), 0);
-
   const handleRowClick = () => {
     router.push(`/expenses/${expense.id}`);
   };
@@ -82,9 +77,6 @@ export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
           </TableCell>
         )}
         <TableCell className="text-right font-mono">
-          {totalFuelGallons > 0 ? totalFuelGallons.toFixed(2) : ""}
-        </TableCell>
-        <TableCell className="text-right font-mono">
           {formatCurrency(expense.amount)}
         </TableCell>
       </TableRow>
@@ -97,11 +89,6 @@ export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
             <TableCell />
             <TableCell className="text-sm">{item.category}</TableCell>
             {showTrip && <TableCell />}
-            <TableCell className="text-right font-mono text-sm text-muted-foreground">
-              {item.quantity_gallons && item.expense_categories?.is_fuel_category
-                ? item.quantity_gallons.toFixed(2)
-                : ""}
-            </TableCell>
             <TableCell className="text-right font-mono text-sm text-muted-foreground">
               {formatCurrency(item.amount)}
             </TableCell>

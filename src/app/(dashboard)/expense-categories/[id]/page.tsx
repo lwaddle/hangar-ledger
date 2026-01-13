@@ -7,6 +7,8 @@ import {
 } from "@/lib/actions/expense-categories";
 import { Button } from "@/components/ui/button";
 import { DeleteExpenseCategoryButton } from "@/components/delete-expense-category-button";
+import { ToggleActiveButton } from "@/components/toggle-active-button";
+import { InactiveBadge } from "@/components/inactive-badge";
 import {
   Table,
   TableBody,
@@ -22,19 +24,6 @@ function formatCurrency(amount: number): string {
     style: "currency",
     currency: "USD",
   }).format(amount);
-}
-
-function getCategoryType(
-  isFlightExpense: boolean,
-  isGeneralExpense: boolean
-): string {
-  if (isFlightExpense && isGeneralExpense) {
-    return "General & Flight";
-  }
-  if (isFlightExpense) {
-    return "Flight";
-  }
-  return "General";
 }
 
 type Props = {
@@ -62,27 +51,38 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{category.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{category.name}</h1>
+            {category.is_system && (
+              <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                Built-in
+              </span>
+            )}
+            {!category.is_active && <InactiveBadge />}
+          </div>
           <p className="text-gray-500 mt-1">
-            {getCategoryType(
-              category.is_flight_expense,
-              category.is_general_expense
-            )}{" "}
-            &middot; {lineItems.length} expense line item
+            {lineItems.length} expense line item
             {lineItems.length !== 1 && "s"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteExpenseCategoryButton
-            categoryId={category.id}
-            categoryName={category.name}
-            lineItemCount={lineItems.length}
-            categories={allCategories}
-          />
-        </div>
+        {!category.is_system && (
+          <div className="flex gap-2">
+            <ToggleActiveButton
+              entityType="expense-category"
+              entityId={category.id}
+              isActive={category.is_active}
+            />
+            <Button variant="outline" asChild>
+              <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
+            </Button>
+            <DeleteExpenseCategoryButton
+              categoryId={category.id}
+              categoryName={category.name}
+              lineItemCount={lineItems.length}
+              categories={allCategories}
+            />
+          </div>
+        )}
       </div>
 
       {category.notes && (

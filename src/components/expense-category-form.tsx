@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   createExpenseCategoryAndRedirect,
   updateExpenseCategory,
@@ -22,35 +21,15 @@ export function ExpenseCategoryForm({ category }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFlightExpense, setIsFlightExpense] = useState(
-    category?.is_flight_expense ?? false
-  );
-  const [isGeneralExpense, setIsGeneralExpense] = useState(
-    category?.is_general_expense ?? false
-  );
-  const [isFuelCategory, setIsFuelCategory] = useState(
-    category?.is_fuel_category ?? false
-  );
-
-  const atLeastOneSelected = isFlightExpense || isGeneralExpense;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
-    if (!atLeastOneSelected) {
-      setError("At least one expense type must be selected");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     const data: ExpenseCategoryFormData = {
       name: formData.get("name") as string,
-      is_flight_expense: isFlightExpense,
-      is_general_expense: isGeneralExpense,
-      is_fuel_category: isFuelCategory,
       notes: (formData.get("notes") as string) || undefined,
     };
 
@@ -83,55 +62,6 @@ export function ExpenseCategoryForm({ category }: Props) {
         />
       </div>
 
-      <div className="space-y-3">
-        <Label>Expense Type *</Label>
-        <p className="text-sm text-gray-500">
-          Select at least one expense type for this category
-        </p>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="is_flight_expense"
-              checked={isFlightExpense}
-              onCheckedChange={(checked) =>
-                setIsFlightExpense(checked === true)
-              }
-            />
-            <Label htmlFor="is_flight_expense" className="font-normal">
-              Flight Expense
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="is_general_expense"
-              checked={isGeneralExpense}
-              onCheckedChange={(checked) =>
-                setIsGeneralExpense(checked === true)
-              }
-            />
-            <Label htmlFor="is_general_expense" className="font-normal">
-              General Expense
-            </Label>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="is_fuel_category"
-            checked={isFuelCategory}
-            onCheckedChange={(checked) => setIsFuelCategory(checked === true)}
-          />
-          <Label htmlFor="is_fuel_category" className="font-normal">
-            Track fuel quantity (gallons/liters)
-          </Label>
-        </div>
-        <p className="text-sm text-gray-500">
-          Enable this for fuel purchases to track quantity in addition to cost
-        </p>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="notes">Notes</Label>
         <Textarea
@@ -146,7 +76,7 @@ export function ExpenseCategoryForm({ category }: Props) {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !atLeastOneSelected}>
+        <Button type="submit" disabled={loading}>
           {loading
             ? "Saving..."
             : category

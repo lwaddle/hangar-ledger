@@ -10,19 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
-
-function getCategoryType(
-  isFlightExpense: boolean,
-  isGeneralExpense: boolean
-): string {
-  if (isFlightExpense && isGeneralExpense) {
-    return "General & Flight";
-  }
-  if (isFlightExpense) {
-    return "Flight";
-  }
-  return "General";
-}
+import { InactiveBadge } from "@/components/inactive-badge";
 
 export default async function ExpenseCategoriesPage() {
   const categories = await getExpenseCategories();
@@ -51,7 +39,6 @@ export default async function ExpenseCategoriesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -60,12 +47,16 @@ export default async function ExpenseCategoriesPage() {
                   key={category.id}
                   href={`/expense-categories/${category.id}`}
                 >
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell className="text-gray-500">
-                    {getCategoryType(
-                      category.is_flight_expense,
-                      category.is_general_expense
-                    )}
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-2">
+                      {category.name}
+                      {category.is_system && (
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                          Built-in
+                        </span>
+                      )}
+                      {!category.is_active && <InactiveBadge />}
+                    </span>
                   </TableCell>
                 </ClickableTableRow>
               ))}

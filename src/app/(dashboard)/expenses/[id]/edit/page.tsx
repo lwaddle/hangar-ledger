@@ -2,10 +2,7 @@ import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
 import { getVendors } from "@/lib/actions/vendors";
 import { getPaymentMethods } from "@/lib/actions/payment-methods";
-import {
-  getFlightExpenseCategories,
-  getGeneralExpenseCategories,
-} from "@/lib/actions/expense-categories";
+import { getExpenseCategories } from "@/lib/actions/expense-categories";
 import { ExpenseForm } from "@/components/expense-form";
 
 type Props = {
@@ -20,13 +17,10 @@ export default async function EditExpensePage({ params }: Props) {
     notFound();
   }
 
-  // Fetch categories based on whether expense is linked to a trip
   const [vendors, paymentMethods, categories] = await Promise.all([
     getVendors(),
     getPaymentMethods(),
-    expense.trip_id
-      ? getFlightExpenseCategories()
-      : getGeneralExpenseCategories(),
+    getExpenseCategories(),
   ]);
 
   return (

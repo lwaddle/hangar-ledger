@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
+import { InactiveBadge } from "@/components/inactive-badge";
 
 export default async function PaymentMethodsPage() {
   const paymentMethods = await getPaymentMethods();
@@ -42,7 +43,12 @@ export default async function PaymentMethodsPage() {
             <TableBody>
               {paymentMethods.map((paymentMethod) => (
                 <ClickableTableRow key={paymentMethod.id} href={`/payment-methods/${paymentMethod.id}`}>
-                  <TableCell className="font-medium">{paymentMethod.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <span className="flex items-center gap-2">
+                      {paymentMethod.name}
+                      {!paymentMethod.is_active && <InactiveBadge />}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-gray-500">
                     {paymentMethod.notes ? (
                       <span className="line-clamp-1">{paymentMethod.notes}</span>

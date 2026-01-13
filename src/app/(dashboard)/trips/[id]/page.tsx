@@ -90,7 +90,6 @@ export default async function TripDetailPage({ params }: Props) {
                 <TableHead>Date</TableHead>
                 <TableHead>Vendor</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead className="text-right">Fuel</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
