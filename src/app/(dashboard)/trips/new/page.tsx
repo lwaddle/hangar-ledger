@@ -1,10 +1,13 @@
 import { TripForm } from "@/components/trip-form";
+import { getActiveAircraft } from "@/lib/actions/aircraft";
 
-export default function NewTripPage() {
+export default async function NewTripPage() {
+  const aircraft = await getActiveAircraft();
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">New Trip</h1>
-      <TripForm />
+      <TripForm aircraft={aircraft} />
     </div>
   );
 }

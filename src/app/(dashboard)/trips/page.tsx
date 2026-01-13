@@ -43,6 +43,7 @@ export default async function TripsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead>Aircraft</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -52,6 +53,7 @@ export default async function TripsPage() {
               {trips.map((trip) => (
                 <ClickableTableRow key={trip.id} href={`/trips/${trip.id}`}>
                   <TableCell className="font-medium">{trip.name}</TableCell>
+                  <TableCell>{trip.aircraft}</TableCell>
                   <TableCell>
                     {new Date(trip.start_date).toLocaleDateString()}
                   </TableCell>

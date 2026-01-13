@@ -2,6 +2,12 @@ import Link from "next/link";
 
 const settingsItems = [
   {
+    href: "/aircraft",
+    label: "Aircraft",
+    description: "Manage aircraft in your fleet",
+    enabled: true,
+  },
+  {
     href: "/vendors",
     label: "Vendors",
     description: "Manage vendors for your expenses",

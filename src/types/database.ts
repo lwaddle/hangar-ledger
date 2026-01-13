@@ -6,7 +6,20 @@ export type Trip = {
   name: string;
   start_date: string;
   end_date: string | null;
+  aircraft_id: string;
+  aircraft: string;
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type Aircraft = {
+  id: string;
+  tail_number: string;
+  name: string | null;
+  notes: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
