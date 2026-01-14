@@ -105,7 +105,7 @@ export function DangerZone() {
                       <li>All import history</li>
                     </ul>
                     <p className="text-sm">
-                      System expense categories will be preserved.
+                      Default expense categories will be preserved.
                     </p>
                   </div>
                 </AlertDialogDescription>

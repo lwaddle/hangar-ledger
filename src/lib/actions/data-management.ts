@@ -166,11 +166,11 @@ export async function deleteAllData(): Promise<DeleteAllDataResult> {
       };
     }
 
-    // STEP 12: Delete expense_categories WHERE is_system = false (preserve system categories)
+    // STEP 12: Delete expense_categories WHERE is_default = false (preserve default categories)
     const { error: categoriesError } = await supabase
       .from("expense_categories")
       .delete()
-      .eq("is_system", false);
+      .eq("is_default", false);
 
     if (categoriesError) {
       return {
