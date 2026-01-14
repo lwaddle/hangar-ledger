@@ -57,11 +57,6 @@ export function EntityMapper({
                       Exists
                     </span>
                   )}
-                  {item.isFuel && (
-                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">
-                      Fuel
-                    </span>
-                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">
