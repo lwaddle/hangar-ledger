@@ -64,6 +64,21 @@ export async function deleteObject(key: string): Promise<void> {
   await client.send(command);
 }
 
+export async function uploadFile(
+  key: string,
+  body: Buffer | Uint8Array,
+  contentType: string
+): Promise<void> {
+  const client = getR2Client();
+  const command = new PutObjectCommand({
+    Bucket: getBucketName(),
+    Key: key,
+    Body: body,
+    ContentType: contentType,
+  });
+  await client.send(command);
+}
+
 export function generateStoragePath(
   expenseId: string,
   filename: string

@@ -29,7 +29,7 @@ const settingsItems = [
     href: "/settings/import-export",
     label: "Import/Export",
     description: "Import or export your data",
-    enabled: false,
+    enabled: true,
   },
 ];
 
