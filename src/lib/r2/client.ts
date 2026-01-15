@@ -87,3 +87,21 @@ export function generateStoragePath(
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
   return `receipts/${expenseId}/${timestamp}-${sanitizedFilename}`;
 }
+
+export async function downloadFile(key: string): Promise<Uint8Array | null> {
+  const client = getR2Client();
+  const command = new GetObjectCommand({
+    Bucket: getBucketName(),
+    Key: key,
+  });
+
+  try {
+    const response = await client.send(command);
+    if (!response.Body) {
+      return null;
+    }
+    return await response.Body.transformToByteArray();
+  } catch {
+    return null;
+  }
+}
