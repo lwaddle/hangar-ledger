@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DangerZone } from "@/components/danger-zone";
 
 const settingsItems = [
   {
@@ -72,6 +73,8 @@ export default function SettingsPage() {
           )
         )}
       </div>
+
+      <DangerZone />
     </div>
   );
 }
