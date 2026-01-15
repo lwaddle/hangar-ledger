@@ -2,10 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
 import { getReceiptsByExpense } from "@/lib/actions/receipts";
-import { Button } from "@/components/ui/button";
-import { DeleteExpenseButton } from "@/components/delete-expense-button";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { ReceiptList } from "@/components/receipt-list";
+import { ExpenseActions } from "@/components/expense-actions";
 import {
   Table,
   TableBody,
@@ -51,12 +50,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
             {expense.category}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/expenses/${expense.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteExpenseButton expenseId={expense.id} vendor={expense.vendor} />
-        </div>
+        <ExpenseActions expenseId={expense.id} vendor={expense.vendor} />
       </div>
 
       <div className="bg-white rounded-lg border p-6 space-y-4">

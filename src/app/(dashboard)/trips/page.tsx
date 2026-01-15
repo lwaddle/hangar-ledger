@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { getTripsWithTotals } from "@/lib/actions/trips";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -10,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
+import { NewTripButton, EmptyTripsActions } from "@/components/new-trip-button";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -25,17 +24,13 @@ export default async function TripsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Trips</h1>
-        <Button asChild>
-          <Link href="/trips/new">New Trip</Link>
-        </Button>
+        <NewTripButton />
       </div>
 
       {trips.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border">
           <p className="text-gray-500 mb-4">No trips yet</p>
-          <Button asChild>
-            <Link href="/trips/new">Create your first trip</Link>
-          </Button>
+          <EmptyTripsActions />
         </div>
       ) : (
         <div className="bg-white rounded-lg border">

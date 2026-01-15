@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { getPaymentMethods } from "@/lib/actions/payment-methods";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,6 +9,10 @@ import {
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
 import { InactiveBadge } from "@/components/inactive-badge";
+import {
+  NewEntityButton,
+  EmptyStateActions,
+} from "@/components/settings-entity-buttons";
 
 export default async function PaymentMethodsPage() {
   const paymentMethods = await getPaymentMethods();
@@ -19,17 +21,17 @@ export default async function PaymentMethodsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Payment Methods</h1>
-        <Button asChild>
-          <Link href="/payment-methods/new">New Payment Method</Link>
-        </Button>
+        <NewEntityButton href="/payment-methods/new" label="New Payment Method" />
       </div>
 
       {paymentMethods.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border">
           <p className="text-gray-500 mb-4">No payment methods yet</p>
-          <Button asChild>
-            <Link href="/payment-methods/new">Create your first payment method</Link>
-          </Button>
+          <EmptyStateActions
+            href="/payment-methods/new"
+            label="Create your first payment method"
+            viewerMessage="Contact an administrator to add payment methods."
+          />
         </div>
       ) : (
         <div className="bg-white rounded-lg border">

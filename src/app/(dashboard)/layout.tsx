@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
+import { Providers } from "@/components/providers";
 
 const navItems = [
   { href: "/trips", label: "Trips" },
@@ -55,7 +56,7 @@ export default async function DashboardLayout({
         </div>
       </nav>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
+        <Providers>{children}</Providers>
       </main>
     </div>
   );

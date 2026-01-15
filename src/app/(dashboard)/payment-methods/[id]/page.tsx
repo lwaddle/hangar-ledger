@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPaymentMethod, getExpensesByPaymentMethod, getPaymentMethods } from "@/lib/actions/payment-methods";
-import { Button } from "@/components/ui/button";
 import { DeletePaymentMethodButton } from "@/components/delete-payment-method-button";
-import { ToggleActiveButton } from "@/components/toggle-active-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { SettingsEntityActions } from "@/components/settings-entity-actions";
 import {
   Table,
   TableBody,
@@ -51,22 +49,20 @@ export default async function PaymentMethodDetailPage({ params }: Props) {
             {expenses.length} expense{expenses.length !== 1 && "s"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <ToggleActiveButton
-            entityType="payment-method"
-            entityId={paymentMethod.id}
-            isActive={paymentMethod.is_active}
-          />
-          <Button variant="outline" asChild>
-            <Link href={`/payment-methods/${paymentMethod.id}/edit`}>Edit</Link>
-          </Button>
-          <DeletePaymentMethodButton
-            paymentMethodId={paymentMethod.id}
-            paymentMethodName={paymentMethod.name}
-            expenseCount={expenses.length}
-            paymentMethods={allPaymentMethods}
-          />
-        </div>
+        <SettingsEntityActions
+          entityType="payment-method"
+          entityId={paymentMethod.id}
+          editHref={`/payment-methods/${paymentMethod.id}/edit`}
+          isActive={paymentMethod.is_active}
+          deleteButton={
+            <DeletePaymentMethodButton
+              paymentMethodId={paymentMethod.id}
+              paymentMethodName={paymentMethod.name}
+              expenseCount={expenses.length}
+              paymentMethods={allPaymentMethods}
+            />
+          }
+        />
       </div>
 
       {paymentMethod.notes && (

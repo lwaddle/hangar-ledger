@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { getAircraft } from "@/lib/actions/aircraft";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,6 +9,10 @@ import {
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
 import { InactiveBadge } from "@/components/inactive-badge";
+import {
+  NewEntityButton,
+  EmptyStateActions,
+} from "@/components/settings-entity-buttons";
 
 export default async function AircraftPage() {
   const aircraft = await getAircraft();
@@ -19,17 +21,17 @@ export default async function AircraftPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Aircraft</h1>
-        <Button asChild>
-          <Link href="/aircraft/new">New Aircraft</Link>
-        </Button>
+        <NewEntityButton href="/aircraft/new" label="New Aircraft" />
       </div>
 
       {aircraft.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border">
           <p className="text-gray-500 mb-4">No aircraft yet</p>
-          <Button asChild>
-            <Link href="/aircraft/new">Add your first aircraft</Link>
-          </Button>
+          <EmptyStateActions
+            href="/aircraft/new"
+            label="Add your first aircraft"
+            viewerMessage="Contact an administrator to add aircraft."
+          />
         </div>
       ) : (
         <div className="bg-white rounded-lg border">

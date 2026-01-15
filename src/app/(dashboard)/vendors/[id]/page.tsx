@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getVendor, getExpensesByVendor, getVendors } from "@/lib/actions/vendors";
-import { Button } from "@/components/ui/button";
 import { DeleteVendorButton } from "@/components/delete-vendor-button";
-import { ToggleActiveButton } from "@/components/toggle-active-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { SettingsEntityActions } from "@/components/settings-entity-actions";
 import {
   Table,
   TableBody,
@@ -52,22 +50,20 @@ export default async function VendorDetailPage({ params }: Props) {
             {expenses.length} expense{expenses.length !== 1 && "s"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <ToggleActiveButton
-            entityType="vendor"
-            entityId={vendor.id}
-            isActive={vendor.is_active}
-          />
-          <Button variant="outline" asChild>
-            <Link href={`/vendors/${vendor.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteVendorButton
-            vendorId={vendor.id}
-            vendorName={vendor.name}
-            expenseCount={expenses.length}
-            vendors={allVendors}
-          />
-        </div>
+        <SettingsEntityActions
+          entityType="vendor"
+          entityId={vendor.id}
+          editHref={`/vendors/${vendor.id}/edit`}
+          isActive={vendor.is_active}
+          deleteButton={
+            <DeleteVendorButton
+              vendorId={vendor.id}
+              vendorName={vendor.name}
+              expenseCount={expenses.length}
+              vendors={allVendors}
+            />
+          }
+        />
       </div>
 
       {vendor.notes && (

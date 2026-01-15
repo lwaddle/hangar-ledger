@@ -1,9 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTrip } from "@/lib/actions/trips";
 import { getExpensesByTrip } from "@/lib/actions/expenses";
-import { Button } from "@/components/ui/button";
-import { DeleteTripButton } from "@/components/delete-trip-button";
 import {
   Table,
   TableBody,
@@ -12,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExpandableExpenseRow } from "@/components/expandable-expense-row";
+import { TripActions, AddExpenseToTripButton } from "@/components/trip-actions";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -49,12 +47,7 @@ export default async function TripDetailPage({ params }: Props) {
               ` - ${new Date(trip.end_date).toLocaleDateString()}`}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/trips/${trip.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteTripButton tripId={trip.id} tripName={trip.name} />
-        </div>
+        <TripActions tripId={trip.id} tripName={trip.name} />
       </div>
 
       {trip.notes && (
@@ -74,9 +67,7 @@ export default async function TripDetailPage({ params }: Props) {
               </p>
             )}
           </div>
-          <Button size="sm" asChild>
-            <Link href={`/expenses/new?trip_id=${trip.id}`}>Add Expense</Link>
-          </Button>
+          <AddExpenseToTripButton tripId={trip.id} />
         </div>
 
         {expenses.length === 0 ? (

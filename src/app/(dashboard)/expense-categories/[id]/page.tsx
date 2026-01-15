@@ -1,14 +1,12 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getExpenseCategory,
   getLineItemsByCategory,
   getExpenseCategories,
 } from "@/lib/actions/expense-categories";
-import { Button } from "@/components/ui/button";
 import { DeleteExpenseCategoryButton } from "@/components/delete-expense-category-button";
-import { ToggleActiveButton } from "@/components/toggle-active-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { SettingsEntityActions } from "@/components/settings-entity-actions";
 import {
   Table,
   TableBody,
@@ -66,22 +64,20 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
           </p>
         </div>
         {!category.is_system && (
-          <div className="flex gap-2">
-            <ToggleActiveButton
-              entityType="expense-category"
-              entityId={category.id}
-              isActive={category.is_active}
-            />
-            <Button variant="outline" asChild>
-              <Link href={`/expense-categories/${category.id}/edit`}>Edit</Link>
-            </Button>
-            <DeleteExpenseCategoryButton
-              categoryId={category.id}
-              categoryName={category.name}
-              lineItemCount={lineItems.length}
-              categories={allCategories}
-            />
-          </div>
+          <SettingsEntityActions
+            entityType="expense-category"
+            entityId={category.id}
+            editHref={`/expense-categories/${category.id}/edit`}
+            isActive={category.is_active}
+            deleteButton={
+              <DeleteExpenseCategoryButton
+                categoryId={category.id}
+                categoryName={category.name}
+                lineItemCount={lineItems.length}
+                categories={allCategories}
+              />
+            }
+          />
         )}
       </div>
 
