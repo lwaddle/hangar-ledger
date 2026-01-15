@@ -1,6 +1,27 @@
 // Database types - will be replaced with generated types from Supabase CLI
 // Run: npx supabase gen types typescript --local > src/types/database.ts
 
+// User roles for role-based access control
+export type UserRole = "admin" | "operator" | "viewer";
+
+export type UserProfile = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  role: UserRole;
+  invited_by: string | null;
+  invited_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// Base fields added to all versioned entities
+export type VersionedFields = {
+  version: number;
+  created_by: string | null;
+  updated_by: string | null;
+};
+
 export type Trip = {
   id: string;
   name: string;
@@ -12,7 +33,7 @@ export type Trip = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type Aircraft = {
   id: string;
@@ -23,7 +44,7 @@ export type Aircraft = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type Vendor = {
   id: string;
@@ -33,7 +54,7 @@ export type Vendor = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type PaymentMethod = {
   id: string;
@@ -43,7 +64,7 @@ export type PaymentMethod = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type ExpenseCategory = {
   id: string;
@@ -55,7 +76,7 @@ export type ExpenseCategory = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type Expense = {
   id: string;
@@ -72,7 +93,7 @@ export type Expense = {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
-};
+} & VersionedFields;
 
 export type Receipt = {
   id: string;
@@ -122,6 +143,3 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 
 export type ExpenseCategoryName = (typeof EXPENSE_CATEGORIES)[number];
-
-// User roles
-export type UserRole = "admin" | "operator" | "viewer";
