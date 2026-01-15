@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Expense, ExpenseLineItem, ExpenseLineItemInput } from "@/types/database";
 import type { UpdateResult } from "@/types/collaboration";
 import {
-  attemptAutoMerge,
   createConflictData,
   successResult,
   versionConflictResult,
@@ -294,9 +293,10 @@ export async function updateExpenseWithLock(
       return unknownErrorResult(fetchError.message);
     }
 
-    // Check if version matches
+    // Check if version matches - ANY version mismatch is a conflict
+    // This includes changes to line items, which aren't tracked in EXPENSE_CONFLICT_FIELDS
     if (currentExpense.version !== expectedVersion) {
-      // Version mismatch - build local version from form data for comparison
+      // Version mismatch - build local version from form data for conflict display
       const totalAmount = formData.line_items.reduce(
         (sum, item) => sum + item.amount,
         0
@@ -318,55 +318,8 @@ export async function updateExpenseWithLock(
         notes: formData.notes || null,
       };
 
-      // Attempt auto-merge
-      const mergeResult = attemptAutoMerge(
-        baseExpense,
-        localExpense,
-        currentExpense,
-        EXPENSE_CONFLICT_FIELDS
-      );
-
-      if (mergeResult.success) {
-        // Auto-merge successful - apply the merged data
-        const { error: updateError, data: updatedExpense } = await supabase
-          .from("expenses")
-          .update({
-            trip_id: mergeResult.mergedData.trip_id,
-            vendor_id: mergeResult.mergedData.vendor_id,
-            payment_method_id: mergeResult.mergedData.payment_method_id,
-            category_id: mergeResult.mergedData.category_id,
-            date: mergeResult.mergedData.date,
-            vendor: mergeResult.mergedData.vendor,
-            amount: mergeResult.mergedData.amount,
-            category: mergeResult.mergedData.category,
-            payment_method: mergeResult.mergedData.payment_method,
-            notes: mergeResult.mergedData.notes,
-          })
-          .eq("id", id)
-          .eq("version", currentExpense.version) // Ensure no changes during merge
-          .select()
-          .single();
-
-        if (updateError) {
-          // Another concurrent update happened
-          return unknownErrorResult(
-            "Data changed during merge. Please try again."
-          );
-        }
-
-        // Update line items
-        await updateLineItems(supabase, id, formData.line_items);
-
-        revalidatePath("/expenses");
-        revalidatePath(`/expenses/${id}`);
-        if (formData.trip_id) {
-          revalidatePath(`/trips/${formData.trip_id}`);
-        }
-
-        return successResult(updatedExpense, updatedExpense.version);
-      }
-
-      // Auto-merge failed - return conflict data
+      // Always return conflict - don't auto-merge because line items may have changed
+      // and we can't reliably merge line item arrays
       const updatedByInfo = currentExpense.updated_by
         ? await getUserDisplayInfo(currentExpense.updated_by)
         : null;

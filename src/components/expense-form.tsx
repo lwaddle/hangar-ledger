@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createExpense,
-  updateExpense,
+  updateExpenseWithLock,
+  forceUpdateExpense,
   type ExpenseFormData,
   type ExpenseWithTrip,
 } from "@/lib/actions/expenses";
@@ -18,13 +19,61 @@ import {
   type ExpenseLineItem,
   type ExpenseCategory,
   type Receipt,
+  type Expense,
 } from "@/types/database";
+import type { ConflictData, ConflictResolution } from "@/types/collaboration";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
 import { ReceiptDropzone } from "@/components/receipt-dropzone";
 import { ReceiptList } from "@/components/receipt-list";
+import { ConflictResolutionDialog } from "@/components/conflict-resolution-dialog";
 import { Plus } from "lucide-react";
+
+// Field labels for conflict dialog
+const EXPENSE_FIELD_LABELS: Partial<Record<keyof Expense, string>> = {
+  vendor: "Vendor",
+  date: "Date",
+  amount: "Total Amount",
+  category: "Primary Category",
+  payment_method: "Payment Method",
+  notes: "Notes",
+};
+
+// Format values for conflict dialog display
+function formatExpenseValue(field: keyof Expense, value: unknown): string {
+  if (value === null || value === undefined) return "(empty)";
+  if (field === "amount" && typeof value === "number") {
+    return `$${value.toFixed(2)}`;
+  }
+  if (field === "date" && typeof value === "string") {
+    return new Date(value).toLocaleDateString();
+  }
+  return String(value);
+}
+
+// Extract base expense data from ExpenseWithTrip
+function extractBaseExpense(expense: ExpenseWithTrip): Expense {
+  return {
+    id: expense.id,
+    trip_id: expense.trip_id,
+    vendor_id: expense.vendor_id,
+    payment_method_id: expense.payment_method_id,
+    category_id: expense.category_id,
+    date: expense.date,
+    vendor: expense.vendor,
+    amount: expense.amount,
+    category: expense.category,
+    payment_method: expense.payment_method,
+    notes: expense.notes,
+    created_at: expense.created_at,
+    updated_at: expense.updated_at,
+    deleted_at: expense.deleted_at,
+    version: expense.version,
+    created_by: expense.created_by,
+    updated_by: expense.updated_by,
+  };
+}
 
 type LineItemState = {
   id?: string;
@@ -67,6 +116,15 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
   const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
   const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts ?? []);
+
+  // Conflict handling state
+  const [conflictData, setConflictData] = useState<ConflictData<Expense> | null>(null);
+  const [showConflictDialog, setShowConflictDialog] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
+  // Store the base expense when form loads (for conflict detection)
+  const baseExpenseRef = useRef<Expense | null>(expense ? extractBaseExpense(expense) : null);
+  // Store the last form data for conflict resolution
+  const lastFormDataRef = useRef<ExpenseFormData | null>(null);
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -144,14 +202,10 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     });
   }, [vendorName, lineItems, categories]);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-
-    const data: ExpenseFormData = {
+  // Build form data from current state
+  function buildFormData(formElement: HTMLFormElement): ExpenseFormData {
+    const formData = new FormData(formElement);
+    return {
       trip_id: tripId || undefined,
       vendor_id: vendorId || undefined,
       payment_method_id: paymentMethodId || undefined,
@@ -180,11 +234,46 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
         };
       }),
     };
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const data = buildFormData(e.currentTarget);
+    lastFormDataRef.current = data;
 
     try {
-      if (expense) {
-        await updateExpense(expense.id, data);
+      if (expense && baseExpenseRef.current) {
+        // Use optimistic locking for updates
+        const result = await updateExpenseWithLock(
+          expense.id,
+          data,
+          expense.version,
+          baseExpenseRef.current
+        );
+
+        if (!result.success) {
+          if (result.error === "version_conflict") {
+            // Show conflict dialog
+            setConflictData(result.conflict);
+            setShowConflictDialog(true);
+            setLoading(false);
+            return;
+          }
+          // Handle other errors (they all have message property)
+          const errorMessage = "message" in result ? result.message : "Failed to update expense";
+          setError(errorMessage);
+          setLoading(false);
+          return;
+        }
+
+        // Success - redirect
+        router.push(`/expenses/${expense.id}`);
+        router.refresh();
       } else {
+        // Creating new expense - no conflict possible
         await createExpense(data);
       }
     } catch (err) {
@@ -193,6 +282,58 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
       }
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
+    }
+  }
+
+  // Handle conflict resolution
+  async function handleConflictResolve(
+    resolution: ConflictResolution,
+    mergedData?: Partial<Expense>
+  ) {
+    if (!expense || !lastFormDataRef.current) return;
+
+    setIsResolving(true);
+    setError(null);
+
+    try {
+      if (resolution === "keep_mine") {
+        // Force update with user's version
+        const result = await forceUpdateExpense(expense.id, lastFormDataRef.current);
+        if (!result.success) {
+          const errorMessage = "message" in result ? result.message : "Failed to save changes";
+          setError(errorMessage);
+          setIsResolving(false);
+          return;
+        }
+        router.push(`/expenses/${expense.id}`);
+        router.refresh();
+      } else if (resolution === "keep_theirs") {
+        // Discard local changes - reload page to get server state
+        router.refresh();
+      } else if (resolution === "merge" && mergedData && conflictData) {
+        // Apply merged data - update lastFormDataRef with merged values
+        const mergedFormData: ExpenseFormData = {
+          ...lastFormDataRef.current,
+          vendor: mergedData.vendor ?? lastFormDataRef.current.vendor,
+          date: mergedData.date ?? lastFormDataRef.current.date,
+          notes: mergedData.notes ?? lastFormDataRef.current.notes,
+          payment_method: mergedData.payment_method ?? lastFormDataRef.current.payment_method,
+        };
+
+        // Force update with merged data
+        const result = await forceUpdateExpense(expense.id, mergedFormData);
+        if (!result.success) {
+          const errorMessage = "message" in result ? result.message : "Failed to save merged changes";
+          setError(errorMessage);
+          setIsResolving(false);
+          return;
+        }
+        router.push(`/expenses/${expense.id}`);
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to resolve conflict");
+      setIsResolving(false);
     }
   }
 
@@ -340,6 +481,19 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
           Cancel
         </Button>
       </div>
+
+      {/* Conflict Resolution Dialog */}
+      {conflictData && (
+        <ConflictResolutionDialog
+          open={showConflictDialog}
+          onOpenChange={setShowConflictDialog}
+          conflict={conflictData}
+          fieldLabels={EXPENSE_FIELD_LABELS}
+          formatValue={formatExpenseValue}
+          onResolve={handleConflictResolve}
+          isResolving={isResolving}
+        />
+      )}
     </form>
   );
 }
