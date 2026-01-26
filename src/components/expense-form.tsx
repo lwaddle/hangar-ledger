@@ -18,8 +18,10 @@ import {
   type ExpenseLineItem,
   type ExpenseCategory,
   type Receipt,
+  type Trip,
 } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
+import { TripCombobox } from "@/components/trip-combobox";
 import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
 import { ReceiptDropzone } from "@/components/receipt-dropzone";
@@ -40,7 +42,7 @@ const LITERS_PER_GALLON = 3.78541;
 
 type Props = {
   expense?: ExpenseWithTrip;
-  tripName?: string;
+  trips: Trip[];
   vendors: Vendor[];
   paymentMethods: PaymentMethod[];
   categories: ExpenseCategory[];
@@ -57,11 +59,11 @@ const emptyLineItem = (): LineItemState => ({
   quantityUnit: "gallons",
 });
 
-export function ExpenseForm({ expense, tripName, vendors, paymentMethods, categories, defaultTripId, initialReceipts }: Props) {
+export function ExpenseForm({ expense, trips, vendors, paymentMethods, categories, defaultTripId, initialReceipts }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const tripId = expense?.trip_id ?? defaultTripId;
+  const [tripId, setTripId] = useState<string>(expense?.trip_id ?? defaultTripId ?? "");
   const [vendorId, setVendorId] = useState<string>(expense?.vendor_id ?? "");
   const [vendorName, setVendorName] = useState<string>(expense?.vendor ?? "");
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
@@ -199,12 +201,15 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
-      {(tripName || expense?.trips?.name) && (
-        <div className="space-y-2">
-          <Label>Trip</Label>
-          <p className="text-sm py-2">{tripName || expense?.trips?.name}</p>
-        </div>
-      )}
+      <div className="space-y-2">
+        <Label>Trip</Label>
+        <TripCombobox
+          trips={trips}
+          value={tripId}
+          onValueChange={(id) => setTripId(id)}
+          disabled={loading}
+        />
+      </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">

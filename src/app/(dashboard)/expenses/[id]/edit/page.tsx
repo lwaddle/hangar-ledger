@@ -4,6 +4,7 @@ import { getReceiptsByExpense } from "@/lib/actions/receipts";
 import { getVendors } from "@/lib/actions/vendors";
 import { getPaymentMethods } from "@/lib/actions/payment-methods";
 import { getExpenseCategories } from "@/lib/actions/expense-categories";
+import { getTrips } from "@/lib/actions/trips";
 import { ExpenseForm } from "@/components/expense-form";
 
 type Props = {
@@ -18,11 +19,12 @@ export default async function EditExpensePage({ params }: Props) {
     notFound();
   }
 
-  const [vendors, paymentMethods, categories, receipts] = await Promise.all([
+  const [vendors, paymentMethods, categories, receipts, trips] = await Promise.all([
     getVendors(),
     getPaymentMethods(),
     getExpenseCategories(),
     getReceiptsByExpense(id),
+    getTrips(),
   ]);
 
   return (
@@ -30,6 +32,7 @@ export default async function EditExpensePage({ params }: Props) {
       <h1 className="text-2xl font-bold mb-6">Edit Expense</h1>
       <ExpenseForm
         expense={expense}
+        trips={trips}
         vendors={vendors}
         paymentMethods={paymentMethods}
         categories={categories}
