@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTrip } from "@/lib/actions/trips";
+import { getTrip, unlockTrip } from "@/lib/actions/trips";
 import { getActiveAircraft } from "@/lib/actions/aircraft";
 import { getCurrentUserRole } from "@/lib/actions/users";
 import { TripForm } from "@/components/trip-form";
 import { LockBadge } from "@/components/lock-badge";
+import { UnlockToEditCard } from "@/components/unlock-to-edit-card";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -23,22 +24,31 @@ export default async function EditTripPage({ params }: Props) {
     notFound();
   }
 
-  // If locked and not admin, show locked message
-  if (trip.is_locked && role !== "admin") {
+  // If locked, require unlock before editing
+  if (trip.is_locked) {
     return (
       <div>
         <div className="flex items-center gap-2 mb-6">
           <h1 className="text-2xl font-bold">Edit Trip</h1>
-          <LockBadge />
         </div>
-        <div className="bg-white rounded-lg border p-6">
-          <p className="text-gray-600 mb-4">
-            This trip is locked and cannot be edited. Contact an administrator to unlock it.
-          </p>
-          <Button variant="outline" asChild>
-            <Link href={`/trips/${id}`}>Back to Trip</Link>
-          </Button>
-        </div>
+        {role === "admin" ? (
+          <UnlockToEditCard
+            itemType="trip"
+            itemId={id}
+            backHref={`/trips/${id}`}
+            unlockAction={unlockTrip}
+          />
+        ) : (
+          <div className="bg-white rounded-lg border p-6">
+            <LockBadge className="mb-4" />
+            <p className="text-gray-600 mb-4">
+              This trip is locked and cannot be edited. Contact an administrator to unlock it.
+            </p>
+            <Button variant="outline" asChild>
+              <Link href={`/trips/${id}`}>Back to Trip</Link>
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -47,7 +57,6 @@ export default async function EditTripPage({ params }: Props) {
     <div>
       <div className="flex items-center gap-2 mb-6">
         <h1 className="text-2xl font-bold">Edit Trip</h1>
-        {trip.is_locked && <LockBadge />}
       </div>
       <TripForm trip={trip} aircraft={aircraft} />
     </div>

@@ -59,7 +59,7 @@ export default async function TripDetailPage({ params }: Props) {
             </p>
           )}
         </div>
-        <TripActions tripId={trip.id} tripName={trip.name} isLocked={trip.is_locked} />
+        <TripActions tripId={trip.id} tripName={trip.name} isLocked={trip.is_locked} createdBy={trip.created_by} />
       </div>
 
       {trip.notes && (

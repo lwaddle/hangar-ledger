@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { Lock, Unlock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useRole } from "@/lib/role-context";
 
 type LockButtonProps = {
@@ -20,6 +30,7 @@ export function LockButton({
 }: LockButtonProps) {
   const { canEdit, isAdmin } = useRole();
   const [loading, setLoading] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Viewers can't see lock buttons
   if (!canEdit) {
@@ -36,39 +47,69 @@ export function LockButton({
     );
   }
 
-  async function handleClick() {
+  async function handleLock() {
     setLoading(true);
+    setShowConfirm(false);
     try {
-      if (isLocked) {
-        await onUnlock();
-      } else {
-        await onLock();
-      }
+      await onLock();
     } catch (err) {
-      console.error(`Failed to ${isLocked ? "unlock" : "lock"} ${entityType}:`, err);
+      console.error(`Failed to lock ${entityType}:`, err);
     } finally {
       setLoading(false);
     }
   }
 
+  async function handleUnlock() {
+    setLoading(true);
+    try {
+      await onUnlock();
+    } catch (err) {
+      console.error(`Failed to unlock ${entityType}:`, err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (isLocked) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleUnlock}
+        disabled={loading}
+      >
+        <Unlock className="w-4 h-4 mr-1" />
+        {loading ? "Unlocking..." : "Unlock"}
+      </Button>
+    );
+  }
+
   return (
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={handleClick}
-      disabled={loading}
-    >
-      {isLocked ? (
-        <>
-          <Unlock className="w-4 h-4 mr-1" />
-          {loading ? "Unlocking..." : "Unlock"}
-        </>
-      ) : (
-        <>
-          <Lock className="w-4 h-4 mr-1" />
-          {loading ? "Locking..." : "Lock"}
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowConfirm(true)}
+        disabled={loading}
+      >
+        <Lock className="w-4 h-4 mr-1" />
+        {loading ? "Locking..." : "Lock"}
+      </Button>
+
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Lock this {entityType}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Once locked, only an administrator can unlock it.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLock}>Lock</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

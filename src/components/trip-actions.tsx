@@ -11,16 +11,20 @@ interface TripActionsProps {
   tripId: string;
   tripName: string;
   isLocked?: boolean;
+  createdBy?: string | null;
 }
 
-export function TripActions({ tripId, tripName, isLocked = false }: TripActionsProps) {
-  const { canEdit, canDelete, isAdmin } = useRole();
+export function TripActions({ tripId, tripName, isLocked = false, createdBy }: TripActionsProps) {
+  const { canEdit, isAdmin, userId } = useRole();
 
   if (!canEdit) {
     return null;
   }
 
   const canEditThisTrip = isAdmin || !isLocked;
+  const isOwner = createdBy != null && userId != null && createdBy === userId;
+  // Can delete if: admin OR (operator AND own trip AND unlocked)
+  const canDeleteThisTrip = isAdmin || (isOwner && !isLocked);
 
   return (
     <div className="flex gap-2">
@@ -35,7 +39,7 @@ export function TripActions({ tripId, tripName, isLocked = false }: TripActionsP
           <Link href={`/trips/${tripId}/edit`}>Edit</Link>
         </Button>
       )}
-      {canDelete && canEditThisTrip && (
+      {canDeleteThisTrip && (
         <DeleteTripButton tripId={tripId} tripName={tripName} />
       )}
     </div>

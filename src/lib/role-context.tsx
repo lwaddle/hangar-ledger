@@ -6,6 +6,7 @@ import type { UserRole } from "@/types/database";
 
 interface RoleContextType {
   role: UserRole | null;
+  userId: string | null;
   isLoading: boolean;
   /** Check if user has at least the specified role */
   hasRole: (requiredRole: UserRole) => boolean;
@@ -21,6 +22,7 @@ interface RoleContextType {
 
 const RoleContext = createContext<RoleContextType>({
   role: null,
+  userId: null,
   isLoading: true,
   hasRole: () => false,
   canEdit: false,
@@ -31,6 +33,7 @@ const RoleContext = createContext<RoleContextType>({
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchRole = async () => {
@@ -42,6 +45,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
     if (!user) {
       setRole(null);
+      setUserId(null);
       setIsLoading(false);
       return;
     }
@@ -53,6 +57,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       .single();
 
     setRole(profile?.role ?? null);
+    setUserId(user.id);
     setIsLoading(false);
   };
 
@@ -82,6 +87,7 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
 
   const value: RoleContextType = {
     role,
+    userId,
     isLoading,
     hasRole,
     canEdit: role === "admin" || role === "operator",
