@@ -16,18 +16,18 @@ Hangar Ledger is a private web application for tracking aircraft operation expen
 
 ```
 src/
-├── app/                 # Next.js App Router pages
-│   ├── (auth)/         # Authentication pages (login, register)
-│   └── (dashboard)/    # Protected app pages (trips, expenses, fuel, reports)
-├── components/         # React UI components
-│   ├── ui/            # shadcn/ui styled components
-│   └── import/        # CSV import mappers
-├── lib/               # Utilities and server actions
-│   ├── actions/       # Server actions
-│   ├── supabase/      # Supabase client setup
-│   └── r2/           # Cloudflare R2 integration
-└── types/            # TypeScript type definitions
-supabase/              # Database migrations & seed data
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/             # Authentication pages (login, register)
+│   └── (dashboard)/        # Protected app pages (trips, expenses, aircraft, settings, reports)
+├── components/             # React UI components
+│   ├── ui/                 # shadcn/ui styled components
+│   └── import/             # CSV import mappers
+├── lib/                    # Utilities and server actions
+│   ├── actions/            # Server actions
+│   ├── supabase/           # Supabase client setup
+│   └── r2/                 # Cloudflare R2 integration
+└── types/                  # TypeScript type definitions
+supabase/                   # Database migrations
 ```
 
 ## Common Commands
@@ -40,6 +40,7 @@ npm run lint      # Run ESLint
 
 ## Key Conventions
 
+- Commits should not include "Co-Authored-By" lines
 - Uses Next.js App Router with server components by default
 - Server actions in `src/lib/actions/` for database operations
 - Soft deletes preferred over hard deletes for data safety
