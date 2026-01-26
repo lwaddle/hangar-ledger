@@ -132,8 +132,46 @@ export async function updateTrip(
   redirect(`/trips/${id}`);
 }
 
+export async function canUserDeleteTrip(tripId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return false;
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  // Admins can delete any trip
+  if (profile?.role === "admin") return true;
+
+  // Operators can only delete their own unlocked trips
+  if (profile?.role === "operator") {
+    const { data: trip } = await supabase
+      .from("trips")
+      .select("created_by, is_locked")
+      .eq("id", tripId)
+      .single();
+
+    return trip?.created_by === user.id && !trip?.is_locked;
+  }
+
+  return false;
+}
+
 export async function deleteTrip(id: string): Promise<void> {
   const supabase = await createClient();
+
+  // Check if user can delete this trip
+  const canDelete = await canUserDeleteTrip(id);
+  if (!canDelete) {
+    throw new Error("You do not have permission to delete this trip");
+  }
+
   // Soft delete
   const { error } = await supabase
     .from("trips")

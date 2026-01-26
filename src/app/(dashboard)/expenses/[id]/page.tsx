@@ -68,6 +68,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
           vendor={expense.vendor}
           isLocked={expense.is_locked}
           isTripLocked={isTripLocked}
+          createdBy={expense.created_by}
         />
       </div>
 

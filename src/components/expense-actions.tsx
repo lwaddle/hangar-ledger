@@ -12,6 +12,7 @@ interface ExpenseActionsProps {
   vendor: string;
   isLocked?: boolean;
   isTripLocked?: boolean;
+  createdBy?: string | null;
 }
 
 export function ExpenseActions({
@@ -19,8 +20,9 @@ export function ExpenseActions({
   vendor,
   isLocked = false,
   isTripLocked = false,
+  createdBy,
 }: ExpenseActionsProps) {
-  const { canEdit, canDelete, isAdmin } = useRole();
+  const { canEdit, isAdmin, userId } = useRole();
 
   if (!canEdit) {
     return null;
@@ -29,6 +31,9 @@ export function ExpenseActions({
   // Expense is effectively locked if either it or its trip is locked
   const isEffectivelyLocked = isLocked || isTripLocked;
   const canEditThisExpense = isAdmin || !isEffectivelyLocked;
+  const isOwner = createdBy != null && userId != null && createdBy === userId;
+  // Can delete if: admin OR (operator AND own expense AND not effectively locked)
+  const canDeleteThisExpense = isAdmin || (isOwner && !isEffectivelyLocked);
 
   return (
     <div className="flex gap-2">
@@ -46,7 +51,7 @@ export function ExpenseActions({
           <Link href={`/expenses/${expenseId}/edit`}>Edit</Link>
         </Button>
       )}
-      {canDelete && canEditThisExpense && (
+      {canDeleteThisExpense && (
         <DeleteExpenseButton expenseId={expenseId} vendor={vendor} />
       )}
     </div>

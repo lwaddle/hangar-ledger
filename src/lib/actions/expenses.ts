@@ -308,13 +308,48 @@ export async function updateExpense(
   redirect(`/expenses/${id}`);
 }
 
+export async function canUserDeleteExpense(expenseId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return false;
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  // Admins can delete any expense
+  if (profile?.role === "admin") return true;
+
+  // Operators can only delete their own unlocked expenses
+  if (profile?.role === "operator") {
+    const { data: expense } = await supabase
+      .from("expenses")
+      .select("created_by")
+      .eq("id", expenseId)
+      .single();
+
+    if (expense?.created_by !== user.id) return false;
+
+    // Check if expense is effectively locked
+    const lockStatus = await isExpenseEffectivelyLocked(expenseId);
+    return !lockStatus.isLocked;
+  }
+
+  return false;
+}
+
 export async function deleteExpense(id: string): Promise<void> {
   const supabase = await createClient();
 
-  // Check if the expense is effectively locked (non-admins can't delete locked expenses)
-  const lockStatus = await isExpenseEffectivelyLocked(id);
-  if (lockStatus.isLocked && !(await isUserAdmin())) {
-    throw new Error("Cannot delete a locked expense");
+  // Check if user can delete this expense
+  const canDelete = await canUserDeleteExpense(id);
+  if (!canDelete) {
+    throw new Error("You do not have permission to delete this expense");
   }
 
   // Soft delete
