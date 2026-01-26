@@ -30,6 +30,9 @@ export type Trip = {
   aircraft_id: string;
   aircraft: string;
   notes: string | null;
+  is_locked: boolean;
+  locked_at: string | null;
+  locked_by: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -90,6 +93,9 @@ export type Expense = {
   category: string;
   payment_method: string | null;
   notes: string | null;
+  is_locked: boolean;
+  locked_at: string | null;
+  locked_by: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -143,3 +149,9 @@ export const EXPENSE_CATEGORIES = [
 ] as const;
 
 export type ExpenseCategoryName = (typeof EXPENSE_CATEGORIES)[number];
+
+export type QueuedFile = {
+  id: string;
+  file: File;
+  previewUrl: string; // URL.createObjectURL() for thumbnail
+};

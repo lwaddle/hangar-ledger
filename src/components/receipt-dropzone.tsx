@@ -10,7 +10,7 @@ import {
   getReceiptUploadUrl,
   createReceiptRecord,
 } from "@/lib/actions/receipts";
-import type { Receipt } from "@/types/database";
+import type { Receipt, QueuedFile } from "@/types/database";
 
 type UploadingFile = {
   id: string;
@@ -21,8 +21,10 @@ type UploadingFile = {
 };
 
 type Props = {
-  expenseId: string;
+  expenseId?: string;
+  mode?: "upload" | "queue";
   onUploadComplete?: (receipt: Receipt) => void;
+  onFilesQueued?: (files: QueuedFile[]) => void;
   disabled?: boolean;
 };
 
@@ -44,7 +46,9 @@ const COMPRESSION_OPTIONS = {
 
 export function ReceiptDropzone({
   expenseId,
+  mode = "upload",
   onUploadComplete,
+  onFilesQueued,
   disabled,
 }: Props) {
   const [uploadingFiles, setUploadingFiles] = useState<UploadingFile[]>([]);
@@ -67,6 +71,11 @@ export function ReceiptDropzone({
   };
 
   const uploadFile = async (file: File) => {
+    if (!expenseId) {
+      console.error("Cannot upload file: expenseId is required");
+      return;
+    }
+
     const fileId = `${Date.now()}-${file.name}`;
 
     setUploadingFiles((prev) => [
@@ -155,12 +164,22 @@ export function ReceiptDropzone({
         console.error(`File rejected: ${rejection.file.name} - ${errors}`);
       });
 
-      // Upload accepted files in parallel
-      acceptedFiles.forEach((file) => {
-        uploadFile(file);
-      });
+      if (mode === "queue") {
+        // Queue mode: create QueuedFile objects and call onFilesQueued
+        const queuedFiles: QueuedFile[] = acceptedFiles.map((file) => ({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2)}-${file.name}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+        }));
+        onFilesQueued?.(queuedFiles);
+      } else {
+        // Upload mode: upload accepted files in parallel
+        acceptedFiles.forEach((file) => {
+          uploadFile(file);
+        });
+      }
     },
-    [expenseId]
+    [mode, expenseId, onFilesQueued]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({

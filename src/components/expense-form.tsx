@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  createExpense,
+  createExpenseAndGetId,
   updateExpense,
   type ExpenseFormData,
   type ExpenseWithTrip,
@@ -19,6 +19,7 @@ import {
   type ExpenseCategory,
   type Receipt,
   type Trip,
+  type QueuedFile,
 } from "@/types/database";
 import { VendorCombobox } from "@/components/vendor-combobox";
 import { TripCombobox } from "@/components/trip-combobox";
@@ -26,6 +27,8 @@ import { PaymentMethodCombobox } from "@/components/payment-method-combobox";
 import { LineItemRow } from "@/components/line-item-row";
 import { ReceiptDropzone } from "@/components/receipt-dropzone";
 import { ReceiptList } from "@/components/receipt-list";
+import { QueuedReceiptList } from "@/components/queued-receipt-list";
+import { uploadQueuedFile } from "@/lib/receipt-upload";
 import { Plus } from "lucide-react";
 
 type LineItemState = {
@@ -69,6 +72,9 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
   const [paymentMethodId, setPaymentMethodId] = useState<string>(expense?.payment_method_id ?? "");
   const [paymentMethodName, setPaymentMethodName] = useState<string>(expense?.payment_method ?? "");
   const [receipts, setReceipts] = useState<Receipt[]>(initialReceipts ?? []);
+  const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
+  const [uploadingReceipts, setUploadingReceipts] = useState(false);
+  const queuedFilesRef = useRef<QueuedFile[]>([]);
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -132,6 +138,26 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
     setReceipts((prev) => prev.filter((r) => r.id !== receiptId));
   };
 
+  const handleFilesQueued = (files: QueuedFile[]) => {
+    setQueuedFiles((prev) => [...prev, ...files]);
+  };
+
+  const handleQueuedFileRemove = (id: string) => {
+    setQueuedFiles((prev) => prev.filter((f) => f.id !== id));
+  };
+
+  // Keep ref in sync with state for cleanup
+  useEffect(() => {
+    queuedFilesRef.current = queuedFiles;
+  }, [queuedFiles]);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      queuedFilesRef.current.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+    };
+  }, []);
+
   const isValid = useMemo(() => {
     if (!vendorName) return false;
     if (lineItems.length === 0) return false;
@@ -188,7 +214,33 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
         router.push(`/expenses/${expense.id}`);
         router.refresh();
       } else {
-        await createExpense(data);
+        // Create expense and get ID
+        const expenseId = await createExpenseAndGetId(data);
+
+        // Upload queued receipts if any
+        if (queuedFiles.length > 0) {
+          setUploadingReceipts(true);
+          const uploadPromises = queuedFiles.map((qf) =>
+            uploadQueuedFile(expenseId, qf.file).catch((err) => {
+              console.error(`Failed to upload ${qf.file.name}:`, err);
+              return null; // Continue even if some uploads fail
+            })
+          );
+          await Promise.all(uploadPromises);
+
+          // Clean up object URLs
+          queuedFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+          setQueuedFiles([]);
+          setUploadingReceipts(false);
+        }
+
+        // Redirect after everything is done
+        if (data.trip_id) {
+          router.push(`/trips/${data.trip_id}`);
+        } else {
+          router.push("/expenses");
+        }
+        router.refresh();
       }
     } catch (err) {
       if (err instanceof Error && err.message === "NEXT_REDIRECT") {
@@ -196,6 +248,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
       }
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
+      setUploadingReceipts(false);
     }
   }
 
@@ -314,34 +367,56 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
         />
       </div>
 
-      {expense && (
-        <div className="space-y-3">
-          <Label>Receipts</Label>
-          <ReceiptList
-            receipts={receipts}
-            expenseId={expense.id}
-            editable
-            onDelete={handleReceiptDelete}
-          />
-          <ReceiptDropzone
-            expenseId={expense.id}
-            onUploadComplete={handleReceiptUpload}
-            disabled={loading}
-          />
-        </div>
-      )}
+      <div className="space-y-3">
+        <Label>Receipts</Label>
+        {expense ? (
+          <>
+            <ReceiptList
+              receipts={receipts}
+              expenseId={expense.id}
+              editable
+              onDelete={handleReceiptDelete}
+            />
+            <ReceiptDropzone
+              expenseId={expense.id}
+              mode="upload"
+              onUploadComplete={handleReceiptUpload}
+              disabled={loading}
+            />
+          </>
+        ) : (
+          <>
+            <QueuedReceiptList
+              files={queuedFiles}
+              onRemove={handleQueuedFileRemove}
+              disabled={loading || uploadingReceipts}
+            />
+            <ReceiptDropzone
+              mode="queue"
+              onFilesQueued={handleFilesQueued}
+              disabled={loading || uploadingReceipts}
+            />
+          </>
+        )}
+      </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !isValid}>
-          {loading ? "Saving..." : expense ? "Update Expense" : "Create Expense"}
+        <Button type="submit" disabled={loading || uploadingReceipts || !isValid}>
+          {uploadingReceipts
+            ? "Uploading receipts..."
+            : loading
+              ? "Saving..."
+              : expense
+                ? "Update Expense"
+                : "Create Expense"}
         </Button>
         <Button
           type="button"
           variant="outline"
           onClick={() => router.back()}
-          disabled={loading}
+          disabled={loading || uploadingReceipts}
         >
           Cancel
         </Button>

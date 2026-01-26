@@ -176,6 +176,64 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
   }
 }
 
+export async function createExpenseAndGetId(formData: ExpenseFormData): Promise<string> {
+  const supabase = await createClient();
+
+  // Check if the associated trip is locked (non-admins can't add expenses to locked trips)
+  if (formData.trip_id) {
+    const tripLocked = await isTripLocked(formData.trip_id);
+    if (tripLocked && !(await isUserAdmin())) {
+      throw new Error("Cannot add expense to a locked trip");
+    }
+  }
+
+  const totalAmount = formData.line_items.reduce((sum, item) => sum + item.amount, 0);
+  const { category: primaryCategory, category_id: primaryCategoryId } =
+    getPrimaryCategory(formData.line_items);
+
+  const { data: expense, error: expenseError } = await supabase
+    .from("expenses")
+    .insert({
+      trip_id: formData.trip_id || null,
+      vendor_id: formData.vendor_id || null,
+      payment_method_id: formData.payment_method_id || null,
+      category_id: primaryCategoryId,
+      date: formData.date,
+      vendor: formData.vendor,
+      amount: totalAmount,
+      category: primaryCategory,
+      payment_method: formData.payment_method || null,
+      notes: formData.notes || null,
+    })
+    .select()
+    .single();
+
+  if (expenseError) throw expenseError;
+
+  const lineItemsToInsert = formData.line_items.map((item, index) => ({
+    expense_id: expense.id,
+    category_id: item.category_id,
+    description: item.description || null,
+    category: item.category,
+    amount: item.amount,
+    quantity_gallons: item.quantity_gallons,
+    sort_order: index,
+  }));
+
+  const { error: lineItemsError } = await supabase
+    .from("expense_line_items")
+    .insert(lineItemsToInsert);
+
+  if (lineItemsError) throw lineItemsError;
+
+  revalidatePath("/expenses");
+  if (formData.trip_id) {
+    revalidatePath(`/trips/${formData.trip_id}`);
+  }
+
+  return expense.id;
+}
+
 export async function updateExpense(
   id: string,
   formData: ExpenseFormData
