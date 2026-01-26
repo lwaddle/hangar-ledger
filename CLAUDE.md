@@ -47,6 +47,13 @@ npm run lint      # Run ESLint
 - Role-based access: Admin, Operator, Viewer (stored in auth metadata)
 - Receipt images stored in Cloudflare R2 with signed URLs
 
+## Git Workflow
+
+- Always create a feature branch before starting new work (never commit directly to main)
+- Branch naming: `feature/<description>` or `fix/<description>` using kebab-case
+- Never push directly to main
+- All changes to main require a PR
+
 ## Environment Variables
 
 Required in `.env.local`:
