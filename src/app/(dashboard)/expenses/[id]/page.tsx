@@ -49,6 +49,14 @@ export default async function ExpenseDetailPage({ params }: Props) {
             {new Date(expense.date).toLocaleDateString()} &middot;{" "}
             {expense.category}
           </p>
+          {expense.updated_by_profile && (
+            <p className="text-xs text-gray-400 mt-2">
+              Last updated by {expense.updated_by_profile.display_name || expense.updated_by_profile.email}
+              {" · "}
+              {new Date(expense.updated_at).toLocaleDateString()} at{" "}
+              {new Date(expense.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+            </p>
+          )}
         </div>
         <ExpenseActions expenseId={expense.id} vendor={expense.vendor} />
       </div>

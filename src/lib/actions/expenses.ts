@@ -39,6 +39,7 @@ export type ExpenseWithTrip = Expense & {
   expense_line_items?: (ExpenseLineItem & {
     expense_categories: { is_active: boolean } | null;
   })[];
+  updated_by_profile: { email: string; display_name: string | null } | null;
 };
 
 export type ExpenseWithRelations = Expense & {
@@ -98,7 +99,7 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), vendors(is_active), payment_methods(name, is_active), expense_line_items(*, expense_categories(is_active))")
+    .select("*, trips(name), vendors(is_active), payment_methods(name, is_active), expense_line_items(*, expense_categories(is_active)), updated_by_profile:user_profiles!expenses_updated_by_profile_fkey(email, display_name)")
     .eq("id", id)
     .is("deleted_at", null)
     .single();

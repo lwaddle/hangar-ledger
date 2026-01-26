@@ -46,6 +46,14 @@ export default async function TripDetailPage({ params }: Props) {
             {trip.end_date &&
               ` - ${new Date(trip.end_date).toLocaleDateString()}`}
           </p>
+          {trip.updated_by_profile && (
+            <p className="text-xs text-gray-400 mt-2">
+              Last updated by {trip.updated_by_profile.display_name || trip.updated_by_profile.email}
+              {" · "}
+              {new Date(trip.updated_at).toLocaleDateString()} at{" "}
+              {new Date(trip.updated_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+            </p>
+          )}
         </div>
         <TripActions tripId={trip.id} tripName={trip.name} />
       </div>
