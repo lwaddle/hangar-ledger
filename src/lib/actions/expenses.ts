@@ -33,7 +33,7 @@ function getPrimaryCategory(lineItems: ExpenseLineItemInput[]): {
 }
 
 export type ExpenseWithTrip = Expense & {
-  trips: { name: string } | null;
+  trips: { name: string; is_locked: boolean } | null;
   vendors: { is_active: boolean } | null;
   payment_methods: { name: string; is_active: boolean } | null;
   expense_line_items?: (ExpenseLineItem & {
@@ -99,7 +99,7 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("expenses")
-    .select("*, trips(name), vendors(is_active), payment_methods(name, is_active), expense_line_items(*, expense_categories(is_active)), updated_by_profile:user_profiles!expenses_updated_by_profile_fkey(email, display_name)")
+    .select("*, trips(name, is_locked), vendors(is_active), payment_methods(name, is_active), expense_line_items(*, expense_categories(is_active)), updated_by_profile:user_profiles!expenses_updated_by_profile_fkey(email, display_name)")
     .eq("id", id)
     .is("deleted_at", null)
     .single();
@@ -119,6 +119,14 @@ export async function getExpense(id: string): Promise<ExpenseWithTrip | null> {
 
 export async function createExpense(formData: ExpenseFormData): Promise<void> {
   const supabase = await createClient();
+
+  // Check if the associated trip is locked (non-admins can't add expenses to locked trips)
+  if (formData.trip_id) {
+    const tripLocked = await isTripLocked(formData.trip_id);
+    if (tripLocked && !(await isUserAdmin())) {
+      throw new Error("Cannot add expense to a locked trip");
+    }
+  }
 
   const totalAmount = formData.line_items.reduce((sum, item) => sum + item.amount, 0);
   const { category: primaryCategory, category_id: primaryCategoryId } =
@@ -173,6 +181,20 @@ export async function updateExpense(
   formData: ExpenseFormData
 ): Promise<void> {
   const supabase = await createClient();
+
+  // Check if the expense is effectively locked (non-admins can't edit locked expenses)
+  const lockStatus = await isExpenseEffectivelyLocked(id);
+  if (lockStatus.isLocked && !(await isUserAdmin())) {
+    throw new Error("Cannot edit a locked expense");
+  }
+
+  // Also check if changing to a locked trip (non-admins can't move expenses to locked trips)
+  if (formData.trip_id) {
+    const tripLocked = await isTripLocked(formData.trip_id);
+    if (tripLocked && !(await isUserAdmin())) {
+      throw new Error("Cannot move expense to a locked trip");
+    }
+  }
 
   const totalAmount = formData.line_items.reduce((sum, item) => sum + item.amount, 0);
   const { category: primaryCategory, category_id: primaryCategoryId } =
@@ -230,6 +252,13 @@ export async function updateExpense(
 
 export async function deleteExpense(id: string): Promise<void> {
   const supabase = await createClient();
+
+  // Check if the expense is effectively locked (non-admins can't delete locked expenses)
+  const lockStatus = await isExpenseEffectivelyLocked(id);
+  if (lockStatus.isLocked && !(await isUserAdmin())) {
+    throw new Error("Cannot delete a locked expense");
+  }
+
   // Soft delete
   const { error } = await supabase
     .from("expenses")
@@ -239,4 +268,110 @@ export async function deleteExpense(id: string): Promise<void> {
   if (error) throw error;
   revalidatePath("/expenses");
   redirect("/expenses");
+}
+
+export async function lockExpense(id: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("expenses")
+    .update({
+      is_locked: true,
+      locked_at: new Date().toISOString(),
+      locked_by: user.id,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/expenses");
+  revalidatePath(`/expenses/${id}`);
+}
+
+export async function unlockExpense(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  // Check if user is admin
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") {
+    throw new Error("Only admins can unlock expenses");
+  }
+
+  const { error } = await supabase
+    .from("expenses")
+    .update({
+      is_locked: false,
+      locked_at: null,
+      locked_by: null,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/expenses");
+  revalidatePath(`/expenses/${id}`);
+}
+
+export async function isExpenseEffectivelyLocked(
+  id: string
+): Promise<{ isLocked: boolean; isTripLocked: boolean; isExpenseLocked: boolean }> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("expenses")
+    .select("is_locked, trips(is_locked)")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+
+  const isExpenseLocked = data?.is_locked ?? false;
+  const tripData = data?.trips as unknown as { is_locked: boolean } | null;
+  const isTripLocked = tripData?.is_locked ?? false;
+
+  return {
+    isLocked: isExpenseLocked || isTripLocked,
+    isTripLocked,
+    isExpenseLocked,
+  };
+}
+
+async function isTripLocked(tripId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("trips")
+    .select("is_locked")
+    .eq("id", tripId)
+    .single();
+  return data?.is_locked ?? false;
+}
+
+async function isUserAdmin(): Promise<boolean> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return false;
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  return profile?.role === "admin";
 }
