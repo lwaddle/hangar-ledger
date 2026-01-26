@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { ExpandableExpenseRow } from "@/components/expandable-expense-row";
 import { TripActions, AddExpenseToTripButton } from "@/components/trip-actions";
+import { LockBadge } from "@/components/lock-badge";
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -39,7 +40,10 @@ export default async function TripDetailPage({ params }: Props) {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{trip.name}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{trip.name}</h1>
+            {trip.is_locked && <LockBadge />}
+          </div>
           <p className="text-gray-500 mt-1">
             {trip.aircraft} &bull;{" "}
             {new Date(trip.start_date).toLocaleDateString()}
@@ -55,7 +59,7 @@ export default async function TripDetailPage({ params }: Props) {
             </p>
           )}
         </div>
-        <TripActions tripId={trip.id} tripName={trip.name} />
+        <TripActions tripId={trip.id} tripName={trip.name} isLocked={trip.is_locked} />
       </div>
 
       {trip.notes && (
@@ -75,7 +79,7 @@ export default async function TripDetailPage({ params }: Props) {
               </p>
             )}
           </div>
-          <AddExpenseToTripButton tripId={trip.id} />
+          <AddExpenseToTripButton tripId={trip.id} isLocked={trip.is_locked} />
         </div>
 
         {expenses.length === 0 ? (

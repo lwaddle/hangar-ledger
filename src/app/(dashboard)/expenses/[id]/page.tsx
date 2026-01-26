@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
 import { getReceiptsByExpense } from "@/lib/actions/receipts";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { LockBadge } from "@/components/lock-badge";
 import { ReceiptList } from "@/components/receipt-list";
 import { ExpenseActions } from "@/components/expense-actions";
 import {
@@ -37,6 +38,9 @@ export default async function ExpenseDetailPage({ params }: Props) {
     notFound();
   }
 
+  const isTripLocked = expense.trips?.is_locked ?? false;
+  const isEffectivelyLocked = expense.is_locked || isTripLocked;
+
   return (
     <div>
       <div className="flex justify-between items-start mb-6">
@@ -44,6 +48,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">{expense.vendor}</h1>
             {expense.vendors && !expense.vendors.is_active && <InactiveBadge />}
+            {isEffectivelyLocked && <LockBadge isTripLocked={isTripLocked && !expense.is_locked} />}
           </div>
           <p className="text-gray-500 mt-1">
             {new Date(expense.date).toLocaleDateString()} &middot;{" "}
@@ -58,7 +63,12 @@ export default async function ExpenseDetailPage({ params }: Props) {
             </p>
           )}
         </div>
-        <ExpenseActions expenseId={expense.id} vendor={expense.vendor} />
+        <ExpenseActions
+          expenseId={expense.id}
+          vendor={expense.vendor}
+          isLocked={expense.is_locked}
+          isTripLocked={isTripLocked}
+        />
       </div>
 
       <div className="bg-white rounded-lg border p-6 space-y-4">
