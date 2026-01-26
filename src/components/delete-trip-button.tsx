@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { deleteTrip } from "@/lib/actions/trips";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Props = {
   tripId: string;
@@ -10,45 +20,42 @@ type Props = {
 };
 
 export function DeleteTripButton({ tripId, tripName }: Props) {
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleDelete() {
     setLoading(true);
     try {
       await deleteTrip(tripId);
-    } catch (err) {
+      setOpen(false);
+    } catch {
       setLoading(false);
-      setConfirming(false);
     }
   }
 
-  if (confirming) {
-    return (
-      <div className="flex gap-2">
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={handleDelete}
-          disabled={loading}
-        >
-          {loading ? "Deleting..." : "Confirm"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirming(false)}
-          disabled={loading}
-        >
-          Cancel
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <Button variant="destructive" onClick={() => setConfirming(true)}>
-      Delete
-    </Button>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Trip</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to delete &quot;{tripName}&quot;? This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={loading}
+          >
+            {loading ? "Deleting..." : "Delete"}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
