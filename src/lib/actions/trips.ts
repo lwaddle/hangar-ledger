@@ -144,3 +144,59 @@ export async function deleteTrip(id: string): Promise<void> {
   revalidatePath("/trips");
   redirect("/trips");
 }
+
+export async function lockTrip(id: string): Promise<void> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("trips")
+    .update({
+      is_locked: true,
+      locked_at: new Date().toISOString(),
+      locked_by: user.id,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/trips");
+  revalidatePath(`/trips/${id}`);
+}
+
+export async function unlockTrip(id: string): Promise<void> {
+  const supabase = await createClient();
+
+  // Check if user is admin
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (profile?.role !== "admin") {
+    throw new Error("Only admins can unlock trips");
+  }
+
+  const { error } = await supabase
+    .from("trips")
+    .update({
+      is_locked: false,
+      locked_at: null,
+      locked_by: null,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
+  revalidatePath("/trips");
+  revalidatePath(`/trips/${id}`);
+}
