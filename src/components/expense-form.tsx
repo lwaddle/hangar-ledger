@@ -150,7 +150,6 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-
     const data: ExpenseFormData = {
       trip_id: tripId || undefined,
       vendor_id: vendorId || undefined,
@@ -184,6 +183,8 @@ export function ExpenseForm({ expense, tripName, vendors, paymentMethods, catego
     try {
       if (expense) {
         await updateExpense(expense.id, data);
+        router.push(`/expenses/${expense.id}`);
+        router.refresh();
       } else {
         await createExpense(data);
       }

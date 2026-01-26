@@ -1,6 +1,4 @@
-import Link from "next/link";
 import { getVendors } from "@/lib/actions/vendors";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,6 +9,10 @@ import {
 } from "@/components/ui/table";
 import { ClickableTableRow } from "@/components/clickable-table-row";
 import { InactiveBadge } from "@/components/inactive-badge";
+import {
+  NewEntityButton,
+  EmptyStateActions,
+} from "@/components/settings-entity-buttons";
 
 export default async function VendorsPage() {
   const vendors = await getVendors();
@@ -19,17 +21,17 @@ export default async function VendorsPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Vendors</h1>
-        <Button asChild>
-          <Link href="/vendors/new">New Vendor</Link>
-        </Button>
+        <NewEntityButton href="/vendors/new" label="New Vendor" />
       </div>
 
       {vendors.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg border">
           <p className="text-gray-500 mb-4">No vendors yet</p>
-          <Button asChild>
-            <Link href="/vendors/new">Create your first vendor</Link>
-          </Button>
+          <EmptyStateActions
+            href="/vendors/new"
+            label="Create your first vendor"
+            viewerMessage="Contact an administrator to add vendors."
+          />
         </div>
       ) : (
         <div className="bg-white rounded-lg border">

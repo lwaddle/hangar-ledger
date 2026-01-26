@@ -1,7 +1,23 @@
 import Link from "next/link";
 import { DangerZone } from "@/components/danger-zone";
+import { getCurrentUser } from "@/lib/actions/users";
 
-const settingsItems = [
+type SettingsItem = {
+  href: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  adminOnly?: boolean;
+};
+
+const settingsItems: SettingsItem[] = [
+  {
+    href: "/settings/users",
+    label: "User Management",
+    description: "Manage users and their permissions",
+    enabled: true,
+    adminOnly: true,
+  },
   {
     href: "/aircraft",
     label: "Aircraft",
@@ -34,7 +50,15 @@ const settingsItems = [
   },
 ];
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const currentUser = await getCurrentUser();
+  const isAdmin = currentUser?.role === "admin";
+
+  // Filter items based on user role
+  const visibleItems = settingsItems.filter(
+    (item) => !item.adminOnly || isAdmin
+  );
+
   return (
     <div>
       <div className="mb-6">
@@ -43,7 +67,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {settingsItems.map((item) =>
+        {visibleItems.map((item) =>
           item.enabled ? (
             <Link
               key={item.href}
@@ -74,7 +98,7 @@ export default function SettingsPage() {
         )}
       </div>
 
-      <DangerZone />
+      {isAdmin && <DangerZone />}
     </div>
   );
 }

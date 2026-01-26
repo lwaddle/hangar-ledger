@@ -36,8 +36,12 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Redirect unauthenticated users to login (except for auth pages)
-  if (!user && !pathname.startsWith("/login")) {
+  // Public routes that don't require authentication
+  const publicRoutes = ["/login", "/auth/callback", "/set-password"];
+  const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route));
+
+  // Redirect unauthenticated users to login (except for public routes)
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

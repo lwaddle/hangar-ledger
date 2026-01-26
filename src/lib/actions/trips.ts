@@ -29,11 +29,15 @@ export type TripWithTotal = Trip & {
   total: number;
 };
 
+export type TripWithEditor = Trip & {
+  updated_by_profile: { email: string; display_name: string | null } | null;
+};
+
 export async function getTripsWithTotals(): Promise<TripWithTotal[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("trips")
-    .select("*, expenses(amount)")
+    .select("*, expenses(amount, deleted_at)")
     .is("deleted_at", null)
     .order("start_date", { ascending: false });
 
@@ -43,16 +47,16 @@ export async function getTripsWithTotals(): Promise<TripWithTotal[]> {
     ...trip,
     expenses: undefined,
     total: (trip.expenses ?? [])
-      .filter((e: { amount: number } | null) => e !== null)
+      .filter((e: { amount: number; deleted_at: string | null } | null) => e !== null && e.deleted_at === null)
       .reduce((sum: number, e: { amount: number }) => sum + Number(e.amount), 0),
   })) as TripWithTotal[];
 }
 
-export async function getTrip(id: string): Promise<Trip | null> {
+export async function getTrip(id: string): Promise<TripWithEditor | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("trips")
-    .select("*")
+    .select("*, updated_by_profile:user_profiles!trips_updated_by_profile_fkey(email, display_name)")
     .eq("id", id)
     .is("deleted_at", null)
     .single();

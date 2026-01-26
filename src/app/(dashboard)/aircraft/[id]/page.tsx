@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAircraftById, getTripsByAircraft, getAircraft } from "@/lib/actions/aircraft";
-import { Button } from "@/components/ui/button";
 import { DeleteAircraftButton } from "@/components/delete-aircraft-button";
-import { ToggleActiveButton } from "@/components/toggle-active-button";
 import { InactiveBadge } from "@/components/inactive-badge";
+import { SettingsEntityActions } from "@/components/settings-entity-actions";
 import {
   Table,
   TableBody,
@@ -46,22 +44,20 @@ export default async function AircraftDetailPage({ params }: Props) {
             {trips.length} trip{trips.length !== 1 && "s"}
           </p>
         </div>
-        <div className="flex gap-2">
-          <ToggleActiveButton
-            entityType="aircraft"
-            entityId={aircraft.id}
-            isActive={aircraft.is_active}
-          />
-          <Button variant="outline" asChild>
-            <Link href={`/aircraft/${aircraft.id}/edit`}>Edit</Link>
-          </Button>
-          <DeleteAircraftButton
-            aircraftId={aircraft.id}
-            aircraftTailNumber={aircraft.tail_number}
-            tripCount={trips.length}
-            allAircraft={allAircraft}
-          />
-        </div>
+        <SettingsEntityActions
+          entityType="aircraft"
+          entityId={aircraft.id}
+          editHref={`/aircraft/${aircraft.id}/edit`}
+          isActive={aircraft.is_active}
+          deleteButton={
+            <DeleteAircraftButton
+              aircraftId={aircraft.id}
+              aircraftTailNumber={aircraft.tail_number}
+              tripCount={trips.length}
+              allAircraft={allAircraft}
+            />
+          }
+        />
       </div>
 
       {aircraft.notes && (
