@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { format, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +17,9 @@ type Props = {
   aircraft: Aircraft[];
 };
 
-function parseDate(dateString: string | undefined | null): Date | undefined {
+function parseLocalDate(dateString: string | undefined | null): Date | undefined {
   if (!dateString) return undefined;
-  return parseISO(dateString);
+  return parse(dateString, "yyyy-MM-dd", new Date());
 }
 
 export function TripForm({ trip, aircraft }: Props) {
@@ -28,10 +28,10 @@ export function TripForm({ trip, aircraft }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [aircraftId, setAircraftId] = useState(trip?.aircraft_id ?? "");
   const [startDate, setStartDate] = useState<Date | undefined>(
-    parseDate(trip?.start_date)
+    parseLocalDate(trip?.start_date)
   );
   const [endDate, setEndDate] = useState<Date | undefined>(
-    parseDate(trip?.end_date)
+    parseLocalDate(trip?.end_date)
   );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -44,6 +44,11 @@ export function TripForm({ trip, aircraft }: Props) {
 
     if (!startDate) {
       setError("Please select a start date");
+      return;
+    }
+
+    if (endDate && startDate > endDate) {
+      setError("Start date cannot be after end date");
       return;
     }
 
