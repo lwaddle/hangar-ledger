@@ -95,6 +95,13 @@ export default async function ExpenseDetailPage({ params }: Props) {
           </div>
         </div>
 
+        {expense.location && (
+          <div>
+            <p className="text-sm text-gray-500">Location</p>
+            <p>{expense.location}</p>
+          </div>
+        )}
+
         {expense.expense_line_items && expense.expense_line_items.length > 0 && (() => {
           const hasFuelItems = expense.expense_line_items.some(
             (item) => item.quantity_gallons != null
