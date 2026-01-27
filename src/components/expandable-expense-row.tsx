@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronRight } from "lucide-react";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import { cn, formatDateString } from "@/lib/utils";
 import type { ExpenseWithLineItems, ExpenseWithRelations } from "@/lib/actions/expenses";
 
 type Props = {
@@ -59,7 +59,7 @@ export function ExpandableExpenseRow({ expense, showTrip = false }: Props) {
             </button>
           )}
         </TableCell>
-        <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+        <TableCell>{formatDateString(expense.date)}</TableCell>
         <TableCell>
           {expense.vendor}
           {expense.vendors?.deleted_at && (

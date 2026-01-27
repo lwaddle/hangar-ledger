@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { format, parse } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,7 +78,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
   const [uploadingReceipts, setUploadingReceipts] = useState(false);
   const queuedFilesRef = useRef<QueuedFile[]>([]);
   const [date, setDate] = useState<Date | undefined>(() => {
-    if (expense?.date) return parseISO(expense.date);
+    if (expense?.date) return parse(expense.date, "yyyy-MM-dd", new Date());
     return new Date();
   });
   const [location, setLocation] = useState<string>(expense?.location ?? "");

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getExpense } from "@/lib/actions/expenses";
 import { getReceiptsByExpense } from "@/lib/actions/receipts";
+import { formatDateString } from "@/lib/utils";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { LockBadge } from "@/components/lock-badge";
 import { ReceiptList } from "@/components/receipt-list";
@@ -51,7 +52,7 @@ export default async function ExpenseDetailPage({ params }: Props) {
             {isEffectivelyLocked && <LockBadge isTripLocked={isTripLocked && !expense.is_locked} />}
           </div>
           <p className="text-gray-500 mt-1">
-            {new Date(expense.date).toLocaleDateString()} &middot;{" "}
+            {formatDateString(expense.date)} &middot;{" "}
             {expense.category}
           </p>
           {expense.updated_by_profile && (
