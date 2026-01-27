@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 import { AircraftCombobox } from "@/components/aircraft-combobox";
 import { createTrip, updateTrip, type TripFormData } from "@/lib/actions/trips";
 import type { Trip, Aircraft } from "@/types/database";
@@ -15,11 +17,22 @@ type Props = {
   aircraft: Aircraft[];
 };
 
+function parseDate(dateString: string | undefined | null): Date | undefined {
+  if (!dateString) return undefined;
+  return parseISO(dateString);
+}
+
 export function TripForm({ trip, aircraft }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aircraftId, setAircraftId] = useState(trip?.aircraft_id ?? "");
+  const [startDate, setStartDate] = useState<Date | undefined>(
+    parseDate(trip?.start_date)
+  );
+  const [endDate, setEndDate] = useState<Date | undefined>(
+    parseDate(trip?.end_date)
+  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -29,14 +42,19 @@ export function TripForm({ trip, aircraft }: Props) {
       return;
     }
 
+    if (!startDate) {
+      setError("Please select a start date");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     const formData = new FormData(e.currentTarget);
     const data: TripFormData = {
       name: formData.get("name") as string,
-      start_date: formData.get("start_date") as string,
-      end_date: (formData.get("end_date") as string) || undefined,
+      start_date: format(startDate, "yyyy-MM-dd"),
+      end_date: endDate ? format(endDate, "yyyy-MM-dd") : undefined,
       aircraft_id: aircraftId,
       notes: (formData.get("notes") as string) || undefined,
     };
@@ -83,22 +101,22 @@ export function TripForm({ trip, aircraft }: Props) {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="start_date">Start Date *</Label>
-          <Input
-            id="start_date"
-            name="start_date"
-            type="date"
-            defaultValue={trip?.start_date}
+          <Label>Start Date *</Label>
+          <DatePicker
+            value={startDate}
+            onChange={setStartDate}
+            placeholder="Select start date"
+            disabled={loading}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="end_date">End Date</Label>
-          <Input
-            id="end_date"
-            name="end_date"
-            type="date"
-            defaultValue={trip?.end_date ?? ""}
+          <Label>End Date</Label>
+          <DatePicker
+            value={endDate}
+            onChange={setEndDate}
+            placeholder="Select end date"
+            disabled={loading}
           />
         </div>
       </div>

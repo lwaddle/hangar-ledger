@@ -2,10 +2,11 @@
 
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   createExpenseAndGetId,
   updateExpense,
@@ -75,6 +76,10 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
   const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [uploadingReceipts, setUploadingReceipts] = useState(false);
   const queuedFilesRef = useRef<QueuedFile[]>([]);
+  const [date, setDate] = useState<Date | undefined>(() => {
+    if (expense?.date) return parseISO(expense.date);
+    return new Date();
+  });
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -174,6 +179,12 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!date) {
+      setError("Please select a date");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -182,7 +193,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
       trip_id: tripId || undefined,
       vendor_id: vendorId || undefined,
       payment_method_id: paymentMethodId || undefined,
-      date: formData.get("date") as string,
+      date: format(date, "yyyy-MM-dd"),
       vendor: vendorName,
       payment_method: paymentMethodName || undefined,
       notes: (formData.get("notes") as string) || undefined,
@@ -266,12 +277,12 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="date">Date *</Label>
-          <Input
-            id="date"
-            name="date"
-            type="date"
-            defaultValue={expense?.date ?? new Date().toISOString().split("T")[0]}
+          <Label>Date *</Label>
+          <DatePicker
+            value={date}
+            onChange={setDate}
+            placeholder="Select date"
+            disabled={loading}
             required
           />
         </div>
