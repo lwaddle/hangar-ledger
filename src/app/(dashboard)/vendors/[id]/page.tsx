@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getVendor, getExpensesByVendor, getVendors } from "@/lib/actions/vendors";
+import { formatDateString } from "@/lib/utils";
 import { DeleteVendorButton } from "@/components/delete-vendor-button";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { SettingsEntityActions } from "@/components/settings-entity-actions";
@@ -102,7 +103,7 @@ export default async function VendorDetailPage({ params }: Props) {
               {expenses.map((expense) => (
                 <ClickableTableRow key={expense.id} href={`/expenses/${expense.id}`}>
                   <TableCell>
-                    {new Date(expense.date).toLocaleDateString()}
+                    {formatDateString(expense.date)}
                   </TableCell>
                   <TableCell>{expense.category}</TableCell>
                   <TableCell className="text-right font-mono">

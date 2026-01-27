@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTrip } from "@/lib/actions/trips";
 import { getExpensesByTrip } from "@/lib/actions/expenses";
+import { formatDateString } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -49,9 +50,9 @@ export default async function TripDetailPage({ params }: Props) {
           </div>
           <p className="text-gray-500 mt-1">
             {trip.aircraft} &bull;{" "}
-            {new Date(trip.start_date).toLocaleDateString()}
+            {formatDateString(trip.start_date)}
             {trip.end_date &&
-              ` - ${new Date(trip.end_date).toLocaleDateString()}`}
+              ` - ${formatDateString(trip.end_date)}`}
           </p>
           {trip.updated_by_profile && (
             <p className="text-xs text-gray-400 mt-2">

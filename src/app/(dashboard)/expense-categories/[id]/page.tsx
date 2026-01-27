@@ -4,6 +4,7 @@ import {
   getLineItemsByCategory,
   getExpenseCategories,
 } from "@/lib/actions/expense-categories";
+import { formatDateString } from "@/lib/utils";
 import { DeleteExpenseCategoryButton } from "@/components/delete-expense-category-button";
 import { InactiveBadge } from "@/components/inactive-badge";
 import { SettingsEntityActions } from "@/components/settings-entity-actions";
@@ -121,7 +122,7 @@ export default async function ExpenseCategoryDetailPage({ params }: Props) {
                   href={`/expenses/${item.expense_id}`}
                 >
                   <TableCell>
-                    {new Date(item.expenses.date).toLocaleDateString()}
+                    {formatDateString(item.expenses.date)}
                   </TableCell>
                   <TableCell>{item.expenses.vendor}</TableCell>
                   <TableCell className="text-gray-500">

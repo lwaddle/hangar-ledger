@@ -1,4 +1,5 @@
 import { getTripsWithTotals } from "@/lib/actions/trips";
+import { formatDateString } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -52,11 +53,11 @@ export default async function TripsPage() {
                   <TableCell className="font-medium">{trip.name}</TableCell>
                   <TableCell>{trip.aircraft}</TableCell>
                   <TableCell>
-                    {new Date(trip.start_date).toLocaleDateString()}
+                    {formatDateString(trip.start_date)}
                   </TableCell>
                   <TableCell>
                     {trip.end_date
-                      ? new Date(trip.end_date).toLocaleDateString()
+                      ? formatDateString(trip.end_date)
                       : "-"}
                   </TableCell>
                   <TableCell className="text-right font-mono">
