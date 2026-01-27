@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -80,6 +81,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
     if (expense?.date) return parseISO(expense.date);
     return new Date();
   });
+  const [location, setLocation] = useState<string>(expense?.location ?? "");
 
   const [lineItems, setLineItems] = useState<LineItemState[]>(() => {
     if (expense?.expense_line_items && expense.expense_line_items.length > 0) {
@@ -196,6 +198,7 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
       date: format(date, "yyyy-MM-dd"),
       vendor: vendorName,
       payment_method: paymentMethodName || undefined,
+      location: location || undefined,
       notes: (formData.get("notes") as string) || undefined,
       line_items: lineItems.map((item, index) => {
         // Convert quantity to gallons if needed
@@ -364,6 +367,17 @@ export function ExpenseForm({ expense, trips, vendors, paymentMethods, categorie
           }}
           disabled={loading}
           includeInactiveId={expense?.payment_method_id ?? undefined}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="location">Location</Label>
+        <Input
+          id="location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          placeholder="e.g., KPDX"
+          disabled={loading}
         />
       </div>
 

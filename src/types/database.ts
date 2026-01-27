@@ -93,6 +93,7 @@ export type Expense = {
   amount: number;
   category: string;
   payment_method: string | null;
+  location: string | null;
   notes: string | null;
   is_locked: boolean;
   locked_at: string | null;

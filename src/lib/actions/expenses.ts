@@ -12,6 +12,7 @@ export type ExpenseFormData = {
   date: string;
   vendor: string;
   payment_method?: string;
+  location?: string;
   notes?: string;
   line_items: ExpenseLineItemInput[];
 };
@@ -144,6 +145,7 @@ export async function createExpense(formData: ExpenseFormData): Promise<void> {
       amount: totalAmount,
       category: primaryCategory,
       payment_method: formData.payment_method || null,
+      location: formData.location || null,
       notes: formData.notes || null,
     })
     .select()
@@ -203,6 +205,7 @@ export async function createExpenseAndGetId(formData: ExpenseFormData): Promise<
       amount: totalAmount,
       category: primaryCategory,
       payment_method: formData.payment_method || null,
+      location: formData.location || null,
       notes: formData.notes || null,
     })
     .select()
@@ -270,6 +273,7 @@ export async function updateExpense(
       amount: totalAmount,
       category: primaryCategory,
       payment_method: formData.payment_method || null,
+      location: formData.location || null,
       notes: formData.notes || null,
     })
     .eq("id", id);
