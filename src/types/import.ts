@@ -100,6 +100,7 @@ export type HangarLedgerTemplateRow = {
   trip_name: string;
   aircraft_tail_number: string;
   vendor_name: string;
+  location: string;
   category_name: string;
   amount: string;
   gallons: string;
@@ -128,6 +129,7 @@ export type ParsedExpense = {
   tailNumber: string;
   paymentMethod: string;
   notes: string;
+  location?: string;
   lineItems: ParsedLineItem[];
 };
 

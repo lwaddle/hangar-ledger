@@ -9,6 +9,7 @@ export type ExportRow = {
   trip_end_date: string;
   aircraft_tail_number: string;
   vendor_name: string;
+  location: string;
   category_name: string;
   amount: string;
   gallons: string;
@@ -20,6 +21,7 @@ type ExpenseWithRelations = {
   id: string;
   date: string;
   vendor: string;
+  location: string | null;
   payment_method: string | null;
   notes: string | null;
   trips: {
@@ -52,6 +54,7 @@ export async function exportExpensesToCSV(): Promise<string> {
       id,
       date,
       vendor,
+      location,
       payment_method,
       notes,
       trips (
@@ -84,6 +87,7 @@ export async function exportExpensesToCSV(): Promise<string> {
     "trip_end_date",
     "aircraft_tail_number",
     "vendor_name",
+    "location",
     "category_name",
     "amount",
     "gallons",
@@ -109,6 +113,7 @@ export async function exportExpensesToCSV(): Promise<string> {
         trip?.end_date ?? "",
         trip?.aircraft ?? "",
         expense.vendor,
+        expense.location ?? "",
         "",
         "0",
         "",
@@ -125,6 +130,7 @@ export async function exportExpensesToCSV(): Promise<string> {
           trip?.end_date ?? "",
           trip?.aircraft ?? "",
           expense.vendor,
+          expense.location ?? "",
           lineItem.category,
           lineItem.amount.toString(),
           lineItem.quantity_gallons?.toString() ?? "",
@@ -161,6 +167,7 @@ export async function generateImportTemplate(): Promise<string> {
     "trip_name",
     "aircraft_tail_number",
     "vendor_name",
+    "location",
     "category_name",
     "amount",
     "gallons",
@@ -174,6 +181,7 @@ export async function generateImportTemplate(): Promise<string> {
     "Trip to KLAS",
     "N12345",
     "Atlantic Aviation",
+    "KLAS",
     "Fuel",
     "1250.00",
     "200.5",

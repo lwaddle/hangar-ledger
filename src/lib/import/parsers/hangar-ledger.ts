@@ -159,6 +159,7 @@ export function transformHangarLedgerData(
       tailNumber: row.aircraft_tail_number || "",
       paymentMethod: row.payment_method || "",
       notes: row.notes || "",
+      location: row.location || "",
       lineItems: [lineItem],
     };
   });
