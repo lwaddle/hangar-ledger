@@ -229,6 +229,7 @@ export async function executeImport(data: ImportData): Promise<ImportResult> {
                 category: primaryCategory?.category || "Other",
                 payment_method: expense.paymentMethod || null,
                 notes: expense.notes || null,
+                location: expense.location || null,
               })
               .select()
               .single();
