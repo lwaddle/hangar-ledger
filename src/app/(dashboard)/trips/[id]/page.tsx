@@ -41,6 +41,9 @@ export default async function TripDetailPage({ params }: Props) {
       <div className="flex justify-between items-start mb-6">
         <div>
           <div className="flex items-center gap-2">
+            <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-mono text-gray-600">
+              {trip.trip_number}
+            </span>
             <h1 className="text-2xl font-bold">{trip.name}</h1>
             {trip.is_locked && <LockBadge />}
           </div>

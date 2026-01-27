@@ -24,6 +24,7 @@ export type VersionedFields = {
 
 export type Trip = {
   id: string;
+  trip_number: string;
   name: string;
   start_date: string;
   end_date: string | null;

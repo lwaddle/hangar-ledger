@@ -37,6 +37,7 @@ export default async function TripsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Trip #</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Aircraft</TableHead>
                 <TableHead>Start Date</TableHead>
@@ -47,6 +48,7 @@ export default async function TripsPage() {
             <TableBody>
               {trips.map((trip) => (
                 <ClickableTableRow key={trip.id} href={`/trips/${trip.id}`}>
+                  <TableCell className="font-mono text-gray-500">{trip.trip_number}</TableCell>
                   <TableCell className="font-medium">{trip.name}</TableCell>
                   <TableCell>{trip.aircraft}</TableCell>
                   <TableCell>
